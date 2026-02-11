@@ -1,0 +1,121 @@
+# Production values for WooCommerce store on VPS/k3s
+# Use with: helm install <name> -f values-prod.yaml
+
+storeName: "default-store"
+storeId: "default-id"
+
+replicaCount: 3
+
+image:
+  repository: wordpress
+  tag: "6.4-apache"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: store.example.com
+  tls:
+    enabled: true
+    secretName: store-tls-cert
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Production MySQL configuration
+mysql:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.0"
+  auth:
+    database: woocommerce
+    username: woocommerce
+    password: ""  # Set via --set or sealed-secrets
+    rootPassword: ""  # Set via --set or sealed-secrets
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+      storageClass: longhorn  # or your cloud provider's storage class
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - mysql
+              topologyKey: kubernetes.io/hostname
+
+# Production WordPress settings
+wordpress:
+  debug: false
+  siteUrl: https://store.example.com
+  extraEnv:
+    - name: WP_CACHE
+      value: "1"
+    - name: WP_MEMORY_LIMIT
+      value: "256M"
+    - name: WP_MAX_MEMORY_LIMIT
+      value: "512M"
+
+# Security context (run as non-root)
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# Pod disruption budget for high availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Monitoring annotations
+monitoring:
+  enabled: true
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
+    prometheus.io/path: "/metrics"
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 30  # Keep last 30 backups

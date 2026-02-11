@@ -1,0 +1,109 @@
+# RBAC Configuration for Store Orchestrator
+# This provides the orchestrator with minimum required permissions
+# to create and manage store namespaces and resources
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: store-orchestrator
+  namespace: default
+  labels:
+    app: store-platform
+    component: orchestrator
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: store-orchestrator
+  labels:
+    app: store-platform
+    component: orchestrator
+rules:
+  # Namespace management
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Resource quotas and limit ranges
+  - apiGroups: [""]
+    resources: ["resourcequotas", "limitranges"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Secrets management (for database passwords, etc.)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Services
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Persistent Volume Claims
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # ConfigMaps (for store configuration)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Pods (read-only, for health checks)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+
+  # Pod logs (for debugging)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+  # Deployments
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "create", "delete", "patch", "watch"]
+
+  # StatefulSets (for MySQL)
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "create", "delete", "patch", "watch"]
+
+  # ReplicaSets (created by deployments)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+
+  # Ingresses
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Network Policies (optional, for future use)
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "create", "delete", "patch"]
+
+  # Events (for logging k8s events)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: store-orchestrator
+  labels:
+    app: store-platform
+    component: orchestrator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: store-orchestrator
+subjects:
+  - kind: ServiceAccount
+    name: store-orchestrator
+    namespace: default

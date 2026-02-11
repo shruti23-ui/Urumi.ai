@@ -16,9 +16,28 @@ spec:
       labels:
         app: {{ .Values.storeName }}-mysql
     spec:
+      {{- if .Values.securityContext }}
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 999
+        fsGroup: 999
+      {{- end }}
       containers:
       - name: mysql
         image: mysql:8.0
+        {{- if .Values.securityContext }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - NET_BIND_SERVICE
+              - CHOWN
+              - SETUID
+              - SETGID
+        {{- end }}
         env:
         - name: MYSQL_ROOT_PASSWORD
           value: {{ .Values.mysql.auth.rootPassword }}
@@ -34,6 +53,10 @@ spec:
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
+        {{- if .Values.mysql.primary.resources }}
+        resources:
+          {{- toYaml .Values.mysql.primary.resources | nindent 10 }}
+        {{- end }}
   volumeClaimTemplates:
   - metadata:
       name: mysql-data

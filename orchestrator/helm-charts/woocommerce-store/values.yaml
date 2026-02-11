@@ -37,3 +37,11 @@ mysql:
     persistence:
       enabled: true
       size: 1Gi
+
+# Security context (disabled by default for backward compatibility)
+# Set to true in production values
+securityContext:
+  enabled: false
+  runAsNonRoot: false
+  runAsUser: 33
+  fsGroup: 33

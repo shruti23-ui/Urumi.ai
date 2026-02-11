@@ -1,0 +1,66 @@
+# Local development values for WooCommerce store
+# Use with: helm install <name> -f values-local.yaml
+
+storeName: "default-store"
+storeId: "default-id"
+
+replicaCount: 1
+
+image:
+  repository: wordpress
+  tag: "6.4-apache"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  host: store.local.stores.dev
+  tls:
+    enabled: false
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+mysql:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.0"
+  auth:
+    database: woocommerce
+    username: woocommerce
+    password: woocommerce123
+    rootPassword: root123
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: standard
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+# Local-specific settings
+wordpress:
+  debug: true
+  siteUrl: http://store.local.stores.dev
+  extraEnv:
+    - name: WP_DEBUG
+      value: "1"
+    - name: WP_DEBUG_LOG
+      value: "1"

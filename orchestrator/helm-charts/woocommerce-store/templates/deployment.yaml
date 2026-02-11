@@ -17,10 +17,26 @@ spec:
         app: {{ .Values.storeName }}
         storeId: {{ .Values.storeId }}
     spec:
+      {{- if .Values.securityContext }}
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot | default true }}
+        runAsUser: {{ .Values.securityContext.runAsUser | default 33 }}
+        fsGroup: {{ .Values.securityContext.fsGroup | default 33 }}
+      {{- end }}
       containers:
       - name: wordpress
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.securityContext }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - NET_BIND_SERVICE
+        {{- end }}
         ports:
         - containerPort: 80
           name: http
