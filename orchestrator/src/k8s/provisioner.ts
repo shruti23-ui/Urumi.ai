@@ -4,6 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
+import * as crypto from 'crypto';
 
 const execAsync = promisify(exec);
 
@@ -113,6 +114,43 @@ export class K8sProvisioner {
     }
   }
 
+  async createMySQLSecret(namespace: string, storeName: string): Promise<{ dbPassword: string; rootPassword: string }> {
+    // Generate secure random passwords (alphanumeric only for MySQL compatibility)
+    const dbPassword = crypto.randomBytes(24).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+    const rootPassword = crypto.randomBytes(24).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+
+    const secret: k8s.V1Secret = {
+      metadata: {
+        name: `${storeName}-mysql-secret`,
+        namespace,
+        labels: {
+          'app.kubernetes.io/managed-by': 'store-platform',
+          'app': `${storeName}-mysql`,
+        },
+      },
+      type: 'Opaque',
+      stringData: {
+        // Use stringData instead of data - Kubernetes will handle base64 encoding
+        'mysql-password': dbPassword,
+        'mysql-root-password': rootPassword,
+      },
+    };
+
+    try {
+      await coreApi.createNamespacedSecret(namespace, secret);
+      console.log(`Created MySQL secret for namespace: ${namespace}`);
+    } catch (error: any) {
+      if (error.response?.statusCode === 409) {
+        console.log(`MySQL secret already exists in ${namespace}`);
+      } else {
+        console.error(`Failed to create MySQL secret:`, error.message);
+        throw error;
+      }
+    }
+
+    return { dbPassword, rootPassword };
+  }
+
   async helmInstall(options: ProvisionOptions): Promise<void> {
     const { namespace, engine, storeName, storeId } = options;
     const chartPath = `./helm-charts/${engine}-store`;
@@ -123,6 +161,10 @@ export class K8sProvisioner {
     // Sanitize storeName for Kubernetes (lowercase, no spaces, only alphanumeric and dashes)
     const sanitizedStoreName = storeName.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
 
+    // Create MySQL secret with secure random passwords
+    const { dbPassword, rootPassword } = await this.createMySQLSecret(namespace, sanitizedStoreName);
+    console.log(`Generated secure MySQL passwords for ${sanitizedStoreName}`);
+
     // Create values file instead of using --set (prevents injection)
     const valuesContent = {
       storeName: sanitizedStoreName,
@@ -130,6 +172,13 @@ export class K8sProvisioner {
       ingress: {
         host: domain,
         enabled: true
+      },
+      mysql: {
+        auth: {
+          existingSecret: `${sanitizedStoreName}-mysql-secret`,
+          username: 'woocommerce',
+          database: 'woocommerce',
+        }
       }
     };
 

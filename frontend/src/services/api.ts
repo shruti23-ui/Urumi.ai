@@ -2,10 +2,20 @@ import axios from 'axios';
 import { Store, StoreEvent, CreateStoreRequest } from '../types';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Add request interceptor to include user-id header
+api.interceptors.request.use((config) => {
+  const userId = localStorage.getItem('userId') || 'default-user';
+  config.headers['x-user-id'] = userId;
+  return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 export const storeApi = {

@@ -8,8 +8,15 @@ const MIN_POLL_INTERVAL = parseInt(process.env.MIN_POLL_INTERVAL_MS || '5000');
 const MAX_POLL_INTERVAL = parseInt(process.env.MAX_POLL_INTERVAL_MS || '30000');
 
 let currentPollInterval = MIN_POLL_INTERVAL;
+let pollTimeout: NodeJS.Timeout | null = null;
+let isShuttingDown = false;
 
 async function poll() {
+  if (isShuttingDown) {
+    console.log('Shutdown in progress, skipping poll');
+    return;
+  }
+
   try {
     const hasWork = await reconciler.reconcile();
 
@@ -27,7 +34,9 @@ async function poll() {
     currentPollInterval = Math.min(currentPollInterval * 1.2, MAX_POLL_INTERVAL);
   }
 
-  setTimeout(poll, currentPollInterval);
+  if (!isShuttingDown) {
+    pollTimeout = setTimeout(poll, currentPollInterval);
+  }
 }
 
 async function main() {
@@ -49,21 +58,35 @@ async function main() {
   poll();
 }
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  pool.end().then(() => {
-    console.log('Database connections closed');
-    process.exit(0);
-  });
-});
+const gracefulShutdown = async (signal: string) => {
+  console.log(`${signal} received, shutting down gracefully...`);
+  isShuttingDown = true;
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  pool.end().then(() => {
+  // Clear pending poll timeout
+  if (pollTimeout) {
+    clearTimeout(pollTimeout);
+    console.log('Stopped poll loop');
+  }
+
+  try {
+    // Close database connections
+    await pool.end();
     console.log('Database connections closed');
     process.exit(0);
-  });
-});
+  } catch (error: any) {
+    console.error('Error during shutdown:', error.message);
+    process.exit(1);
+  }
+
+  // Force shutdown after 30 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 30000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 main().catch((error) => {
   console.error('Fatal error:', error);
