@@ -16,7 +16,7 @@ spec:
       labels:
         app: {{ .Values.storeName }}-mysql
     spec:
-      {{- if .Values.securityContext }}
+      {{- if .Values.securityContext.enabled }}
       securityContext:
         runAsNonRoot: false
         runAsUser: 999
@@ -25,7 +25,7 @@ spec:
       containers:
       - name: mysql
         image: mysql:8.0
-        {{- if .Values.securityContext }}
+        {{- if .Values.securityContext.enabled }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -40,16 +40,42 @@ spec:
         {{- end }}
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.mysql.auth.rootPassword }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysql.auth.existingSecret | default (printf "%s-mysql-secret" .Values.storeName) }}
+              key: mysql-root-password
         - name: MYSQL_DATABASE
           value: {{ .Values.mysql.auth.database }}
         - name: MYSQL_USER
           value: {{ .Values.mysql.auth.username }}
         - name: MYSQL_PASSWORD
-          value: {{ .Values.mysql.auth.password }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysql.auth.existingSecret | default (printf "%s-mysql-secret" .Values.storeName) }}
+              key: mysql-password
         ports:
         - containerPort: 3306
           name: mysql
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - mysqladmin ping -h localhost -p$MYSQL_ROOT_PASSWORD
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD -e "SELECT 1"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql

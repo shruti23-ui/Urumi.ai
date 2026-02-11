@@ -4,10 +4,20 @@ kind: Ingress
 metadata:
   name: {{ .Values.storeName }}
   annotations:
+    {{- if .Values.ingress.tls.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.clusterIssuer | default "letsencrypt-prod" }}
+    {{- end }}
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
+  ingressClassName: {{ .Values.ingress.className | default "nginx" }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host }}
+    secretName: {{ .Values.ingress.tls.secretName | default (printf "%s-tls" .Values.storeName) }}
+  {{- end }}
   rules:
   - host: {{ .Values.ingress.host }}
     http:

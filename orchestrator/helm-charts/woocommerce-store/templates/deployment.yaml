@@ -17,17 +17,30 @@ spec:
         app: {{ .Values.storeName }}
         storeId: {{ .Values.storeId }}
     spec:
-      {{- if .Values.securityContext }}
+      {{- if .Values.securityContext.enabled }}
       securityContext:
         runAsNonRoot: {{ .Values.securityContext.runAsNonRoot | default true }}
         runAsUser: {{ .Values.securityContext.runAsUser | default 33 }}
         fsGroup: {{ .Values.securityContext.fsGroup | default 33 }}
       {{- end }}
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for MySQL to be ready..."
+          until nc -z {{ .Values.storeName }}-mysql 3306; do
+            echo "MySQL is not ready yet, sleeping..."
+            sleep 2
+          done
+          echo "MySQL is ready!"
       containers:
       - name: wordpress
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if .Values.securityContext }}
+        {{- if .Values.securityContext.enabled }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -46,9 +59,28 @@ spec:
         - name: WORDPRESS_DB_USER
           value: {{ .Values.mysql.auth.username }}
         - name: WORDPRESS_DB_PASSWORD
-          value: {{ .Values.mysql.auth.password }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysql.auth.existingSecret | default (printf "%s-mysql-secret" .Values.storeName) }}
+              key: mysql-password
         - name: WORDPRESS_DB_NAME
           value: {{ .Values.mysql.auth.database }}
+        livenessProbe:
+          httpGet:
+            path: /wp-admin/install.php
+            port: http
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /wp-admin/install.php
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
         resources:
           limits:
             cpu: {{ .Values.resources.limits.cpu }}

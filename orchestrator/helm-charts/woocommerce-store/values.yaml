@@ -14,9 +14,14 @@ service:
 
 ingress:
   enabled: true
+  className: nginx
   host: store.local.stores.dev
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+  tls:
+    enabled: false  # Set to true in production with cert-manager
+    clusterIssuer: letsencrypt-prod
+    secretName: ""  # Auto-generated if not specified
 
 resources:
   limits:
@@ -31,12 +36,20 @@ mysql:
   auth:
     database: woocommerce
     username: woocommerce
-    password: woocommerce123
-    rootPassword: root123
+    # Passwords are now stored in Kubernetes Secret created by provisioner
+    # The secret name is passed via existingSecret parameter
+    existingSecret: ""  # Will be set by provisioner at runtime
   primary:
     persistence:
       enabled: true
       size: 1Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
 # Security context (disabled by default for backward compatibility)
 # Set to true in production values
