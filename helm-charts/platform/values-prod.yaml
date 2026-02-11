@@ -1,0 +1,60 @@
+# Production overrides for VPS/k3s
+postgresql:
+  persistence:
+    size: 20Gi
+    storageClass: "local-path"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+api:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  env:
+    NODE_ENV: production
+    DEFAULT_DOMAIN_SUFFIX: ".yourdomain.com"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+orchestrator:
+  replicas: 2
+  image:
+    pullPolicy: Always
+  env:
+    DEFAULT_DOMAIN_SUFFIX: ".yourdomain.com"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+dashboard:
+  replicas: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  host: "platform.yourdomain.com"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"

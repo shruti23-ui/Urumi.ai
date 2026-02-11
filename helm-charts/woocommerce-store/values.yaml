@@ -1,0 +1,72 @@
+storeName: "My Store"
+storeId: "store-id"
+
+wordpress:
+  image:
+    repository: wordpress
+    tag: "6.4-apache"
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  replicas: 1
+
+mysql:
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+
+  rootPassword: "rootpass123"
+  database: "wordpress"
+  user: "wpuser"
+  password: "wppass123"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: ""
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "store.local.stores.dev"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+service:
+  type: ClusterIP
+  port: 80
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 120
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3

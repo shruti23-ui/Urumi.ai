@@ -1,0 +1,21 @@
+# Local development overrides
+postgresql:
+  persistence:
+    storageClass: "standard"
+
+ingress:
+  host: "platform.local.stores.dev"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+api:
+  replicas: 1
+  env:
+    DEFAULT_DOMAIN_SUFFIX: ".local.stores.dev"
+
+orchestrator:
+  env:
+    DEFAULT_DOMAIN_SUFFIX: ".local.stores.dev"
+
+dashboard:
+  replicas: 1

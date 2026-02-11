@@ -1,0 +1,12 @@
+# Local development overrides
+ingress:
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+mysql:
+  persistence:
+    storageClass: "standard"
+
+persistence:
+  storageClass: "standard"

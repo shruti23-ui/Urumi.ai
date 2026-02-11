@@ -1,0 +1,23 @@
+{
+  "name": "k8s-store-platform",
+  "version": "1.0.0",
+  "description": "Kubernetes-based store provisioning platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "orchestrator"
+  ],
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../orchestrator && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:orchestrator": "cd orchestrator && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:orchestrator": "cd orchestrator && npm run build"
+  },
+  "keywords": ["kubernetes", "helm", "store-provisioning", "woocommerce", "medusa"],
+  "author": "",
+  "license": "MIT"
+}

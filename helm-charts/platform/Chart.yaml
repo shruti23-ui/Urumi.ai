@@ -1,0 +1,11 @@
+apiVersion: v2
+name: store-platform
+description: Store provisioning platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - store-platform
+  - orchestration
+maintainers:
+  - name: Platform Team

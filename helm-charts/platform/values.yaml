@@ -1,0 +1,91 @@
+namespace: store-platform
+
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  database: store_platform
+  user: postgres
+  password: postgres
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+api:
+  enabled: true
+  image:
+    repository: platform-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  port: 3001
+  env:
+    NODE_ENV: production
+    PORT: "3001"
+    MAX_STORES_PER_USER: "10"
+    RATE_LIMIT_WINDOW_MS: "900000"
+    RATE_LIMIT_MAX_REQUESTS: "100"
+    DEFAULT_DOMAIN_SUFFIX: ".local.stores.dev"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+orchestrator:
+  enabled: true
+  image:
+    repository: platform-orchestrator
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  env:
+    NODE_ENV: production
+    POLL_INTERVAL_MS: "5000"
+    HELM_RELEASE_TIMEOUT: "600"
+    DEFAULT_DOMAIN_SUFFIX: ".local.stores.dev"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+dashboard:
+  enabled: true
+  image:
+    repository: platform-dashboard
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "platform.local.stores.dev"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+rbac:
+  create: true
+  serviceAccountName: store-orchestrator

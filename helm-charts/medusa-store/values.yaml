@@ -1,0 +1,70 @@
+storeName: "My Medusa Store"
+storeId: "store-id"
+
+medusa:
+  image:
+    repository: medusajs/medusa
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  replicas: 1
+
+postgres:
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+
+  database: "medusa"
+  user: "medusa"
+  password: "medusapass123"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+
+redis:
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: "store.local.stores.dev"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+service:
+  type: ClusterIP
+  port: 9000
+
+# Note: This is a stub implementation
+# Full Medusa deployment would require additional configuration
+# including admin UI, storefront, and proper environment variables

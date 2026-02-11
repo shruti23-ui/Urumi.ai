@@ -1,0 +1,12 @@
+apiVersion: v2
+name: medusa-store
+description: A Helm chart for deploying MedusaJS stores
+type: application
+version: 1.0.0
+appVersion: "2.0"
+keywords:
+  - medusa
+  - medusajs
+  - ecommerce
+maintainers:
+  - name: Platform Team
