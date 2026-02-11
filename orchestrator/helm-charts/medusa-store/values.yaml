@@ -1,0 +1,46 @@
+storeName: "default-store"
+storeId: "default-id"
+
+replicaCount: 1
+
+image:
+  repository: medusajs/medusa
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 9000
+
+ingress:
+  enabled: true
+  host: store.local.stores.dev
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+postgres:
+  enabled: true
+  auth:
+    database: medusa
+    username: medusa
+    password: medusa123
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false

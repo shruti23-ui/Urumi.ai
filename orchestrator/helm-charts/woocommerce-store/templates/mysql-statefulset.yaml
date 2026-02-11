@@ -1,0 +1,57 @@
+{{- if .Values.mysql.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.storeName }}-mysql
+  labels:
+    app: {{ .Values.storeName }}-mysql
+spec:
+  serviceName: {{ .Values.storeName }}-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.storeName }}-mysql
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.storeName }}-mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.mysql.auth.rootPassword }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.mysql.auth.database }}
+        - name: MYSQL_USER
+          value: {{ .Values.mysql.auth.username }}
+        - name: MYSQL_PASSWORD
+          value: {{ .Values.mysql.auth.password }}
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.mysql.primary.persistence.size }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.storeName }}-mysql
+spec:
+  clusterIP: None
+  selector:
+    app: {{ .Values.storeName }}-mysql
+  ports:
+  - port: 3306
+    name: mysql
+{{- end }}

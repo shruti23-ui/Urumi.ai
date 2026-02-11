@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.storeName }}
+  labels:
+    app: {{ .Values.storeName }}
+    storeId: {{ .Values.storeId }}
+    engine: woocommerce
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.storeName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.storeName }}
+        storeId: {{ .Values.storeId }}
+    spec:
+      containers:
+      - name: wordpress
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: "{{ .Values.storeName }}-mysql"
+        - name: WORDPRESS_DB_USER
+          value: {{ .Values.mysql.auth.username }}
+        - name: WORDPRESS_DB_PASSWORD
+          value: {{ .Values.mysql.auth.password }}
+        - name: WORDPRESS_DB_NAME
+          value: {{ .Values.mysql.auth.database }}
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}

@@ -14,7 +14,7 @@ const pool = new Pool({
   statement_timeout: 30000,
 });
 
-pool.on('error', (err) => {
+pool.on('error', (err: any) => {
   logger.error('Unexpected database error', {
     error: err.message,
     stack: err.stack,

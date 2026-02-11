@@ -78,7 +78,7 @@ export class K8sProvisioner {
         limits: [
           {
             type: 'Container',
-            default: {
+            _default: {
               cpu: '500m',
               memory: '512Mi',
             },
@@ -120,9 +120,12 @@ export class K8sProvisioner {
     const domainSuffix = process.env.DEFAULT_DOMAIN_SUFFIX || '.local.stores.dev';
     const domain = `${storeName.toLowerCase().replace(/[^a-z0-9-]/g, '-')}${domainSuffix}`;
 
+    // Sanitize storeName for Kubernetes (lowercase, no spaces, only alphanumeric and dashes)
+    const sanitizedStoreName = storeName.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+
     // Create values file instead of using --set (prevents injection)
     const valuesContent = {
-      storeName: storeName,
+      storeName: sanitizedStoreName,
       storeId: storeId,
       ingress: {
         host: domain,
@@ -130,7 +133,8 @@ export class K8sProvisioner {
       }
     };
 
-    const valuesFilePath = `/tmp/helm-values-${storeId}.yaml`;
+    const tmpDir = process.platform === 'win32' ? process.env.TEMP || 'C:\\tmp' : '/tmp';
+    const valuesFilePath = `${tmpDir}/helm-values-${storeId}.yaml`;
 
     try {
       await fs.writeFile(valuesFilePath, yaml.dump(valuesContent));
