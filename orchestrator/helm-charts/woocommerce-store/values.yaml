@@ -1,0 +1,39 @@
+storeName: "default-store"
+storeId: "default-id"
+
+replicaCount: 1
+
+image:
+  repository: wordpress
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  host: store.local.stores.dev
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+mysql:
+  enabled: true
+  auth:
+    database: woocommerce
+    username: woocommerce
+    password: woocommerce123
+    rootPassword: root123
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi

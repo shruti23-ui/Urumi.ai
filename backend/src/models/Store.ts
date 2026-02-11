@@ -23,4 +23,5 @@ export interface StoreEvent {
   event_type: string;
   message?: string;
   created_at: Date;
+  correlation_id?: string;
 }
