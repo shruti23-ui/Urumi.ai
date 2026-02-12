@@ -115,7 +115,7 @@ function App() {
                 disabled={creating}
               >
                 <option value="woocommerce">WooCommerce</option>
-                <option value="medusa">Medusa (Coming Soon)</option>
+                <option value="medusa" disabled>Medusa (Coming in Round 2)</option>
               </select>
             </div>
             <button type="submit" className="btn btn-primary" disabled={creating}>
@@ -134,18 +134,18 @@ function App() {
         )}
 
         <section className="stores-section">
-          <h2>Your Stores ({stores.length})</h2>
+          <h2>Your Stores ({(stores ?? []).length})</h2>
 
-          {loading && stores.length === 0 ? (
+          {loading && (stores ?? []).length === 0 ? (
             <div className="loading">Loading stores...</div>
-          ) : stores.length === 0 ? (
+          ) : (stores ?? []).length === 0 ? (
             <div className="no-stores">
               <h3>No stores yet</h3>
               <p>Create your first store using the form above</p>
             </div>
           ) : (
             <div className="stores-grid">
-              {stores.map((store) => (
+              {(stores ?? []).map((store) => (
                 <StoreCard
                   key={store.id}
                   store={store}

@@ -173,6 +173,27 @@ MAX_POLL_INTERVAL_MS=30000
 
 ## Troubleshooting
 
+### Dashboard shows 404 at http://&lt;VPS_IP&gt;:31107
+
+**Root cause:** Ingress only matched `platform.local.stores.dev`. Requests with Host header `13.51.146.246` didn't match any rule.
+
+**Fix:** Use the VPS values file when deploying:
+
+```bash
+helm upgrade --install store-platform ./helm-charts/platform \
+  -f helm-charts/platform/values-vps.yaml \
+  --create-namespace
+```
+
+For custom IP, set in values:
+```yaml
+ingress:
+  additionalHosts: ["YOUR_VPS_IP"]
+  allowIPAccess: true
+```
+
+### General troubleshooting
+
 ```bash
 # Check orchestrator logs
 kubectl logs -n store-platform deployment/platform-orchestrator

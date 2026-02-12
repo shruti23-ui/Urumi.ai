@@ -32,10 +32,14 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
+// CORS configuration - include localhost (port 80) for ingress/dashboard access
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+  'http://localhost',
+  'http://localhost:80',
   'http://localhost:3000',
   'http://localhost:5173',
+  'http://127.0.0.1',
+  'http://127.0.0.1:80',
 ];
 
 app.use(cors({

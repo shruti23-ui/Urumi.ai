@@ -1,0 +1,32 @@
+# VPS deployment overrides - Use with NodePort/Ingress access
+# Deploy: helm upgrade --install store-platform ./helm-charts/platform -f helm-charts/platform/values-vps.yaml
+#
+# IMPORTANT: Set ingress.additionalHosts to your VPS IP to fix 404 when accessing via http://<VPS_IP>:31107
+
+postgresql:
+  persistence:
+    storageClass: "local-path"
+    size: 20Gi
+
+ingress:
+  host: "platform.local.stores.dev"
+  # Add your VPS public IP for explicit matching (optional if allowIPAccess is true)
+  additionalHosts:
+    - "13.51.146.246"
+  # Allow raw IP access - fixes 404 when using http://<VPS_IP>:31107
+  allowIPAccess: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+api:
+  replicas: 2
+  env:
+    DEFAULT_DOMAIN_SUFFIX: ".13.51.146.246.nip.io"
+
+orchestrator:
+  replicas: 1
+  env:
+    DEFAULT_DOMAIN_SUFFIX: ".13.51.146.246.nip.io"
+
+dashboard:
+  replicas: 2

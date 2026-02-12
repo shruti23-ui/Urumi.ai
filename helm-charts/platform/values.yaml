@@ -83,6 +83,10 @@ ingress:
   enabled: true
   className: "nginx"
   host: "platform.local.stores.dev"
+  # Add VPS IP for IP-based access (fixes 404 when using http://<VPS_IP>:31107)
+  additionalHosts: []
+  # When true, also match unmapped hosts (raw IP) - use for VPS without DNS
+  allowIPAccess: false
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 

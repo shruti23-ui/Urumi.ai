@@ -8,7 +8,7 @@ rules:
   resources: ["namespaces", "pods", "services", "persistentvolumeclaims", "secrets", "configmaps", "resourcequotas", "limitranges"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["apps"]
-  resources: ["deployments", "statefulsets"]
+  resources: ["deployments", "statefulsets", "replicasets"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses"]

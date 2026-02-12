@@ -6,13 +6,14 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build && \
-    rm -rf src tsconfig.json
+    rm -rf src tsconfig.json && \
+    npm prune --omit=dev
 
 USER nodejs
 

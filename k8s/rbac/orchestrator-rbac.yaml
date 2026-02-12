@@ -7,7 +7,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: store-orchestrator
-  namespace: default
+  namespace: store-platform
   labels:
     app: store-platform
     component: orchestrator
@@ -71,10 +71,10 @@ rules:
     resources: ["statefulsets"]
     verbs: ["get", "list", "create", "delete", "patch", "watch"]
 
-  # ReplicaSets (created by deployments)
+  # ReplicaSets (required by Helm --wait for deployment readiness)
   - apiGroups: ["apps"]
     resources: ["replicasets"]
-    verbs: ["get", "list", "watch"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
   # Ingresses
   - apiGroups: ["networking.k8s.io"]
@@ -106,4 +106,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: store-orchestrator
-    namespace: default
+    namespace: store-platform

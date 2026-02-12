@@ -11,6 +11,7 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
+  # Rule 1: Domain-based access (e.g. platform.local.stores.dev)
   - host: {{ .Values.ingress.host }}
     http:
       paths:
@@ -21,4 +22,29 @@ spec:
             name: platform-dashboard
             port:
               number: {{ .Values.dashboard.port }}
+  {{- /* Additional hosts for IP-based access (e.g. http://13.51.146.246:31107) */}}
+  {{- range $additionalHost := (.Values.ingress.additionalHosts | default list) }}
+  - host: {{ $additionalHost | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: platform-dashboard
+            port:
+              number: {{ $.Values.dashboard.port }}
+  {{- end }}
+  {{- /* Catch-all for unmapped hosts (IP access when no other ingress matches) */}}
+  {{- if .Values.ingress.allowIPAccess }}
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: platform-dashboard
+            port:
+              number: {{ .Values.dashboard.port }}
+  {{- end }}
 {{- end }}
