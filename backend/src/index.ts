@@ -83,13 +83,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global rate limiter
-app.use(globalRateLimiter);
-
-// Health checks (before other routes)
+// Health checks (MUST be before rate limiter to avoid 429 errors from probes)
 app.get('/health', storeController.healthCheck.bind(storeController));
 app.get('/health/live', storeController.livenessCheck.bind(storeController));
 app.get('/health/ready', storeController.readinessCheck.bind(storeController));
+
+// Global rate limiter (applied to all routes except health checks above)
+app.use(globalRateLimiter);
 
 // API routes
 app.post('/api/stores', createStoreRateLimiter, validateCreateStore,
