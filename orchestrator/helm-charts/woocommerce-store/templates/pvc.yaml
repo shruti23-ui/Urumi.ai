@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.storeName }}-wordpress-pvc
+  labels:
+    app: {{ .Values.storeName }}
+    storeId: {{ .Values.storeId }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
