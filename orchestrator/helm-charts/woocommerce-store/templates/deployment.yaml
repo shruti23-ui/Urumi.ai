@@ -97,6 +97,7 @@ spec:
         - sh
         - -c
         - |
+          cd /var/www/html
           echo "Waiting for WordPress to be accessible..."
           sleep 60
 
@@ -109,6 +110,10 @@ spec:
           echo "Installing WordPress..."
           wp core install --url="{{ .Values.storeUrl }}" --title="{{ .Values.storeName }}" --admin_user=admin --admin_password="{{ .Values.wordpress.adminPassword }}" --admin_email="{{ .Values.wordpress.adminEmail }}" --skip-email --allow-root
 
+          echo "Fixing permissions..."
+          mkdir -p wp-content/uploads wp-content/upgrade
+          chmod 777 wp-content/uploads wp-content/upgrade
+
           echo "Installing WooCommerce..."
           wp plugin install woocommerce --activate --allow-root
           sleep 15
@@ -117,14 +122,15 @@ spec:
           wp option update woocommerce_currency 'INR' --allow-root || true
 
           echo "Downloading images..."
-          mkdir -p /tmp/img && cd /tmp/img
+          cd wp-content/uploads
           curl -sL "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800" -o tshirt.jpg
           curl -sL "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800" -o jeans.jpg
           curl -sL "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800" -o shoes.jpg
 
-          T_ID=$(wp media import tshirt.jpg --porcelain --allow-root)
-          J_ID=$(wp media import jeans.jpg --porcelain --allow-root)
-          S_ID=$(wp media import shoes.jpg --porcelain --allow-root)
+          cd /var/www/html
+          T_ID=$(wp media import wp-content/uploads/tshirt.jpg --porcelain --allow-root)
+          J_ID=$(wp media import wp-content/uploads/jeans.jpg --porcelain --allow-root)
+          S_ID=$(wp media import wp-content/uploads/shoes.jpg --porcelain --allow-root)
 
           wp woocommerce product create --name="Cotton T-Shirt" --regular_price=500 --manage_stock=true --stock_quantity=100 --status=publish --images="[{\"id\":$T_ID}]" --user=admin --allow-root
           wp woocommerce product create --name="Denim Jeans" --regular_price=1200 --manage_stock=true --stock_quantity=50 --status=publish --images="[{\"id\":$J_ID}]" --user=admin --allow-root
@@ -148,6 +154,9 @@ spec:
         volumeMounts:
         - name: wordpress-data
           mountPath: /var/www/html
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
       volumes:
       - name: wordpress-data
         persistentVolumeClaim:
