@@ -1,3 +1,49 @@
+## 📌 Project Overview
+
+This project is a cloud-deployed e-commerce platform developed to demonstrate full-stack development and basic DevOps skills.
+
+It includes a functional online store with user authentication, product management, shopping cart, checkout system, and an admin panel. The system is deployed on AWS and is accessible through public URLs.
+
+The project focuses on practical implementation of web technologies, cloud deployment, and version control using GitHub.
+
+## Code Overview
+
+The repository contains the complete source code for the platform, including frontend, backend, configuration files, and deployment scripts.
+
+The code demonstrates:
+- Web application development
+- AWS cloud deployment
+- Environment configuration
+- Version control best practices
+- Basic automation and maintenance workflows
+
+All components are organized to support easy setup, testing, and further development.
+
+## Live URLs
+
+- Main Store: http://13.51.146.246:31107/
+- Store Frontend: http://13.51.146.246:31303/
+- Admin / Account Panel: http://13.51.146.246:31303/my-account/
+
+## Disclaimer
+
+“Urumi Clothing” is a fictional/sample brand name used only for demonstration purposes. This project is not associated with any real business or commercial entity.
+
+## 📷 Project Screenshots
+
+### Home Page
+![Home Page](Home.jpeg)
+
+### Product Page
+![Product Page](Products.jpeg)
+
+### Cart & Checkout
+![Cart](Product.jpeg)
+
+### Admin Dashboard
+![Admin](Admin.jpeg)
+
+
 # Kubernetes Store Provisioning Platform
 
 Production-ready multi-tenant WooCommerce store provisioning on Kubernetes with automated deployment, isolation, and lifecycle management.
