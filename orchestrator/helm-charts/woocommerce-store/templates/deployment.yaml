@@ -91,6 +91,63 @@ spec:
         volumeMounts:
         - name: wordpress-data
           mountPath: /var/www/html
+      - name: wp-setup
+        image: wordpress:cli-php8.2
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for WordPress to be accessible..."
+          sleep 60
+
+          # Check if already installed
+          if wp core is-installed --allow-root 2>/dev/null; then
+            echo "WordPress already set up"
+            sleep infinity
+          fi
+
+          echo "Installing WordPress..."
+          wp core install --url="{{ .Values.storeUrl }}" --title="{{ .Values.storeName }}" --admin_user=admin --admin_password="{{ .Values.wordpress.adminPassword }}" --admin_email="{{ .Values.wordpress.adminEmail }}" --skip-email --allow-root
+
+          echo "Installing WooCommerce..."
+          wp plugin install woocommerce --activate --allow-root
+          sleep 15
+
+          wp option update woocommerce_cod_settings '{"enabled":"yes"}' --format=json --allow-root || true
+          wp option update woocommerce_currency 'INR' --allow-root || true
+
+          echo "Downloading images..."
+          mkdir -p /tmp/img && cd /tmp/img
+          curl -sL "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800" -o tshirt.jpg
+          curl -sL "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800" -o jeans.jpg
+          curl -sL "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800" -o shoes.jpg
+
+          T_ID=$(wp media import tshirt.jpg --porcelain --allow-root)
+          J_ID=$(wp media import jeans.jpg --porcelain --allow-root)
+          S_ID=$(wp media import shoes.jpg --porcelain --allow-root)
+
+          wp woocommerce product create --name="Cotton T-Shirt" --regular_price=500 --manage_stock=true --stock_quantity=100 --status=publish --images="[{\"id\":$T_ID}]" --user=admin --allow-root
+          wp woocommerce product create --name="Denim Jeans" --regular_price=1200 --manage_stock=true --stock_quantity=50 --status=publish --images="[{\"id\":$J_ID}]" --user=admin --allow-root
+          wp woocommerce product create --name="Casual Shoes" --regular_price=1500 --manage_stock=true --stock_quantity=30 --status=publish --images="[{\"id\":$S_ID}]" --user=admin --allow-root
+
+          wp woocommerce tool run install_pages --user=admin --allow-root || true
+          echo "Setup complete!"
+          sleep infinity
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: "{{ .Values.storeName }}-mysql"
+        - name: WORDPRESS_DB_USER
+          value: {{ .Values.mysql.auth.username }}
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysql.auth.existingSecret | default (printf "%s-mysql-secret" .Values.storeName) }}
+              key: mysql-password
+        - name: WORDPRESS_DB_NAME
+          value: {{ .Values.mysql.auth.database }}
+        volumeMounts:
+        - name: wordpress-data
+          mountPath: /var/www/html
       volumes:
       - name: wordpress-data
         persistentVolumeClaim:
