@@ -67,6 +67,16 @@ spec:
           echo "Installing WooCommerce plugin..."
           wp plugin install woocommerce --activate --path=/var/www/html --allow-root || echo "WooCommerce install failed"
 
+          echo "Waiting for WooCommerce to initialize..."
+          sleep 10
+
+          # Verify WooCommerce is properly installed
+          if ! wp plugin is-active woocommerce --path=/var/www/html --allow-root; then
+            echo "WooCommerce not activated, attempting to activate again..."
+            wp plugin activate woocommerce --path=/var/www/html --allow-root || true
+            sleep 5
+          fi
+
           echo "Configuring WooCommerce settings..."
           # Enable Cash on Delivery
           wp option update woocommerce_cod_settings '{"enabled":"yes","title":"Cash on Delivery","description":"Pay with cash upon delivery"}' --format=json --path=/var/www/html --allow-root || true
@@ -76,6 +86,15 @@ spec:
 
           # Disable new product email notifications
           wp option update woocommerce_new_order_settings '{"enabled":"no"}' --format=json --path=/var/www/html --allow-root || true
+
+          echo "Verifying WooCommerce is ready for product creation..."
+          # Check if WooCommerce CLI is available
+          if wp woocommerce --path=/var/www/html --allow-root > /dev/null 2>&1; then
+            echo "WooCommerce CLI is ready!"
+          else
+            echo "WooCommerce CLI not available yet, waiting..."
+            sleep 10
+          fi
 
           echo "Creating sample products..."
           # Create T-Shirt
