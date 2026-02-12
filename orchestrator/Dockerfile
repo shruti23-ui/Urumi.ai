@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache curl bash
+RUN apk add --no-cache curl bash openssl
 
 # Install Helm
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -11,13 +11,14 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build && \
-    rm -rf src tsconfig.json
+    rm -rf src tsconfig.json node_modules && \
+    npm install --only=production
 
 # Copy helm charts
 COPY helm-charts ./helm-charts
