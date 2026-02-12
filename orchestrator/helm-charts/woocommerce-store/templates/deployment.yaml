@@ -96,51 +96,58 @@ spec:
             sleep 10
           fi
 
-          echo "Creating sample products..."
-          # Create T-Shirt
-          wp woocommerce product create \
-            --name="Cotton T-Shirt" \
-            --type=simple \
-            --regular_price=500 \
-            --description="Comfortable cotton t-shirt perfect for everyday wear" \
-            --short_description="Premium quality cotton t-shirt" \
-            --virtual=true \
-            --manage_stock=true \
-            --stock_quantity=100 \
-            --status=publish \
-            --path=/var/www/html \
-            --user=admin \
-            --allow-root || echo "T-Shirt creation failed"
+          echo "Creating sample products with images..."
 
-          # Create Jeans
-          wp woocommerce product create \
-            --name="Denim Jeans" \
-            --type=simple \
-            --regular_price=1200 \
-            --description="Classic blue denim jeans with comfortable fit" \
-            --short_description="Stylish denim jeans" \
-            --virtual=true \
-            --manage_stock=true \
-            --stock_quantity=50 \
-            --status=publish \
-            --path=/var/www/html \
-            --user=admin \
-            --allow-root || echo "Jeans creation failed"
+          # Download product images from free sources
+          echo "Downloading product images..."
+          mkdir -p /tmp/product-images
 
-          # Create Shoes
-          wp woocommerce product create \
-            --name="Casual Shoes" \
-            --type=simple \
-            --regular_price=1500 \
-            --description="Comfortable casual shoes for daily wear" \
-            --short_description="Trendy casual footwear" \
-            --virtual=true \
-            --manage_stock=true \
-            --stock_quantity=30 \
-            --status=publish \
-            --path=/var/www/html \
-            --user=admin \
-            --allow-root || echo "Shoes creation failed"
+          # T-Shirt image (using placeholder.com as reliable free source)
+          curl -s -o /tmp/product-images/tshirt.jpg "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80" || \
+          curl -s -o /tmp/product-images/tshirt.jpg "https://via.placeholder.com/800x800/4A90E2/FFFFFF?text=Cotton+T-Shirt"
+
+          # Jeans image
+          curl -s -o /tmp/product-images/jeans.jpg "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80" || \
+          curl -s -o /tmp/product-images/jeans.jpg "https://via.placeholder.com/800x800/2ECC71/FFFFFF?text=Denim+Jeans"
+
+          # Shoes image
+          curl -s -o /tmp/product-images/shoes.jpg "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80" || \
+          curl -s -o /tmp/product-images/shoes.jpg "https://via.placeholder.com/800x800/E74C3C/FFFFFF?text=Casual+Shoes"
+
+          echo "Uploading images to WordPress..."
+          # Upload T-Shirt image and get media ID
+          TSHIRT_IMAGE_ID=$(wp media import /tmp/product-images/tshirt.jpg --porcelain --path=/var/www/html --allow-root 2>/dev/null || echo "")
+
+          # Upload Jeans image
+          JEANS_IMAGE_ID=$(wp media import /tmp/product-images/jeans.jpg --porcelain --path=/var/www/html --allow-root 2>/dev/null || echo "")
+
+          # Upload Shoes image
+          SHOES_IMAGE_ID=$(wp media import /tmp/product-images/shoes.jpg --porcelain --path=/var/www/html --allow-root 2>/dev/null || echo "")
+
+          echo "Creating products with images..."
+          # Create T-Shirt with image
+          TSHIRT_ARGS="--name=\"Cotton T-Shirt\" --type=simple --regular_price=500 --description=\"Comfortable cotton t-shirt perfect for everyday wear\" --short_description=\"Premium quality cotton t-shirt\" --manage_stock=true --stock_quantity=100 --status=publish"
+          if [ ! -z "$TSHIRT_IMAGE_ID" ]; then
+            TSHIRT_ARGS="$TSHIRT_ARGS --images='[{\"id\":$TSHIRT_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $TSHIRT_ARGS --path=/var/www/html --user=admin --allow-root || echo "T-Shirt creation failed"
+
+          # Create Jeans with image
+          JEANS_ARGS="--name=\"Denim Jeans\" --type=simple --regular_price=1200 --description=\"Classic blue denim jeans with comfortable fit\" --short_description=\"Stylish denim jeans\" --manage_stock=true --stock_quantity=50 --status=publish"
+          if [ ! -z "$JEANS_IMAGE_ID" ]; then
+            JEANS_ARGS="$JEANS_ARGS --images='[{\"id\":$JEANS_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $JEANS_ARGS --path=/var/www/html --user=admin --allow-root || echo "Jeans creation failed"
+
+          # Create Shoes with image
+          SHOES_ARGS="--name=\"Casual Shoes\" --type=simple --regular_price=1500 --description=\"Comfortable casual shoes for daily wear\" --short_description=\"Trendy casual footwear\" --manage_stock=true --stock_quantity=30 --status=publish"
+          if [ ! -z "$SHOES_IMAGE_ID" ]; then
+            SHOES_ARGS="$SHOES_ARGS --images='[{\"id\":$SHOES_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $SHOES_ARGS --path=/var/www/html --user=admin --allow-root || echo "Shoes creation failed"
+
+          # Cleanup
+          rm -rf /tmp/product-images
 
           echo "Setting up WooCommerce pages..."
           wp woocommerce tool run install_pages --path=/var/www/html --user=admin --allow-root || true
