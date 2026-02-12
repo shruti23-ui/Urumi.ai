@@ -3,6 +3,14 @@ storeId: "default-id"
 
 replicaCount: 1
 
+# WordPress Configuration
+wordpress:
+  adminPassword: "Admin@123!"  # Change in production
+  adminEmail: "admin@example.com"
+
+# Store URL (will be set by orchestrator based on ingress)
+storeUrl: "http://store.local.stores.dev"
+
 image:
   repository: wordpress
   tag: "latest"

@@ -169,6 +169,11 @@ export class K8sProvisioner {
     const valuesContent = {
       storeName: sanitizedStoreName,
       storeId: storeId,
+      storeUrl: `http://${domain}`,
+      wordpress: {
+        adminPassword: 'Admin@123!',
+        adminEmail: 'admin@example.com'
+      },
       ingress: {
         host: domain,
         enabled: true
