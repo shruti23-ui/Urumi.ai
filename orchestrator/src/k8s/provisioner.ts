@@ -246,15 +246,21 @@ export class K8sProvisioner {
 
   async getStoreUrls(namespace: string): Promise<string[]> {
     try {
-      const { body } = await networkingApi.listNamespacedIngress(namespace);
+      // Get NodePort services instead of Ingress
+      const { body } = await coreApi.listNamespacedService(namespace);
       const urls: string[] = [];
 
-      for (const ingress of body.items) {
-        const rules = ingress.spec?.rules || [];
-        for (const rule of rules) {
-          if (rule.host) {
-            const protocol = ingress.spec?.tls?.some(t => t.hosts?.includes(rule.host!)) ? 'https' : 'http';
-            urls.push(`${protocol}://${rule.host}`);
+      // Get the external IP for NodePort access
+      const externalIP = process.env.EXTERNAL_IP || 'localhost';
+
+      for (const service of body.items) {
+        // Only process NodePort services
+        if (service.spec?.type === 'NodePort') {
+          const ports = service.spec?.ports || [];
+          for (const port of ports) {
+            if (port.nodePort) {
+              urls.push(`http://${externalIP}:${port.nodePort}`);
+            }
           }
         }
       }
