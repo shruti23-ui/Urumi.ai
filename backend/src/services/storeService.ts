@@ -106,7 +106,7 @@ export class StoreService {
       pool.query('SELECT COUNT(*) FROM stores WHERE user_id = $1', [userId])
     ]);
 
-    const total = parseInt(countResult.rows[0].count);
+    const total = parseInt(countResult.rows[0].count, 10);
 
     return {
       stores: storesResult.rows,
@@ -165,10 +165,10 @@ export class StoreService {
 
   async getStoreCountByUser(userId: string): Promise<number> {
     const result = await pool.query(
-      'SELECT COUNT(*) as count FROM stores WHERE user_id = $1 AND status != $2',
-      [userId, 'failed']
+      "SELECT COUNT(*) as count FROM stores WHERE user_id = $1 AND status NOT IN ('failed', 'deleting')",
+      [userId]
     );
-    return parseInt(result.rows[0].count);
+    return parseInt(result.rows[0].count, 10);
   }
 }
 

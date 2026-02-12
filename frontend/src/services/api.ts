@@ -21,11 +21,12 @@ api.interceptors.request.use((config) => {
 export const storeApi = {
   getStores: async (): Promise<Store[]> => {
     const response = await api.get<{ stores: Store[] }>('/stores');
-    return response.data.stores;
+    return Array.isArray(response.data?.stores) ? response.data.stores : [];
   },
 
   getStore: async (id: string): Promise<Store> => {
     const response = await api.get<{ store: Store }>(`/stores/${id}`);
+    if (!response.data?.store) throw new Error('Invalid store response');
     return response.data.store;
   },
 
@@ -40,7 +41,7 @@ export const storeApi = {
 
   getStoreEvents: async (id: string): Promise<StoreEvent[]> => {
     const response = await api.get<{ events: StoreEvent[] }>(`/stores/${id}/events`);
-    return response.data.events;
+    return Array.isArray(response.data?.events) ? response.data.events : [];
   },
 };
 

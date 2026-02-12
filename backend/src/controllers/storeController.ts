@@ -52,8 +52,8 @@ export class StoreController {
 
     try {
       const userId = req.headers['x-user-id'] as string || 'default-user';
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
+      const limit = parseInt(req.query.limit as string, 10) || 50;
+      const offset = parseInt(req.query.offset as string, 10) || 0;
 
       logger.debug('Fetching stores', {
         correlationId,
@@ -90,18 +90,24 @@ export class StoreController {
 
   async getStore(req: Request, res: Response, next: NextFunction) {
     const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+    const userId = req.headers['x-user-id'] as string || 'default-user';
 
     try {
       const { id } = req.params;
 
       logger.debug('Fetching store', {
         correlationId,
-        storeId: id
+        storeId: id,
+        userId
       });
 
       const store = await storeService.getStoreById(id);
 
       if (!store) {
+        throw new NotFoundError('Store not found');
+      }
+
+      if (store.user_id !== userId) {
         throw new NotFoundError('Store not found');
       }
 
@@ -114,18 +120,24 @@ export class StoreController {
 
   async deleteStore(req: Request, res: Response, next: NextFunction) {
     const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+    const userId = req.headers['x-user-id'] as string || 'default-user';
 
     try {
       const { id } = req.params;
 
       logger.info('Store deletion request received', {
         correlationId,
-        storeId: id
+        storeId: id,
+        userId
       });
 
       const store = await storeService.getStoreById(id);
 
       if (!store) {
+        throw new NotFoundError('Store not found');
+      }
+
+      if (store.user_id !== userId) {
         throw new NotFoundError('Store not found');
       }
 
@@ -143,14 +155,21 @@ export class StoreController {
 
   async getStoreEvents(req: Request, res: Response, next: NextFunction) {
     const correlationId = req.headers['x-correlation-id'] as string || uuidv4();
+    const userId = req.headers['x-user-id'] as string || 'default-user';
 
     try {
       const { id } = req.params;
 
       logger.debug('Fetching store events', {
         correlationId,
-        storeId: id
+        storeId: id,
+        userId
       });
+
+      const store = await storeService.getStoreById(id);
+      if (!store || store.user_id !== userId) {
+        throw new NotFoundError('Store not found');
+      }
 
       const events = await storeService.getStoreEvents(id);
 

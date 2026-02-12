@@ -11,7 +11,13 @@ export function StoreCard({ store, onDelete, isDeleting }: StoreCardProps) {
     return `store-status status-${status}`;
   };
 
-  const urls = store.urls ? JSON.parse(store.urls) : [];
+  let urls: string[] = [];
+  try {
+    urls = store.urls ? JSON.parse(store.urls) : [];
+    if (!Array.isArray(urls)) urls = [];
+  } catch {
+    urls = [];
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
