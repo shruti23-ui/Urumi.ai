@@ -1,6 +1,6 @@
 ## 📌 Project Overview
 
-This project is a cloud-deployed e-commerce platform developed as part of an academic assignment to demonstrate full-stack development and basic DevOps skills.
+This project is a cloud-deployed e-commerce platform developed to demonstrate full-stack development and basic DevOps skills.
 
 It includes a functional online store with user authentication, product management, shopping cart, checkout system, and an admin panel. The system is deployed on AWS and is accessible through public URLs.
 
@@ -27,7 +27,7 @@ All components are organized to support easy setup, testing, and further develop
 
 ## Disclaimer
 
-“Urumi Clothing” is a fictional/sample brand name used only for academic and demonstration purposes. This project is not associated with any real business or commercial entity.
+“Urumi Clothing” is a fictional/sample brand name used only for demonstration purposes. This project is not associated with any real business or commercial entity.
 
 # Kubernetes Store Provisioning Platform
 
