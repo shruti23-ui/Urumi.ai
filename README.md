@@ -29,6 +29,21 @@ All components are organized to support easy setup, testing, and further develop
 
 “Urumi Clothing” is a fictional/sample brand name used only for demonstration purposes. This project is not associated with any real business or commercial entity.
 
+## 📷 Project Screenshots
+
+### 🏠 Home Page
+![Home Page](HomePage.png)
+
+### 🛍️ Product Page
+![Product Page](Products.jpg)
+
+### 🛒 Cart & Checkout
+![Cart](ProductCheckout.jpg)
+
+### ⚙️ Admin Dashboard
+![Admin](Admin.jpg)
+
+
 # Kubernetes Store Provisioning Platform
 
 Production-ready multi-tenant WooCommerce store provisioning on Kubernetes with automated deployment, isolation, and lifecycle management.
