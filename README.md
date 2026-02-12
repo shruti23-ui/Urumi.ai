@@ -31,17 +31,17 @@ All components are organized to support easy setup, testing, and further develop
 
 ## 📷 Project Screenshots
 
-### 🏠 Home Page
-![Home Page](HomePage.png)
+### Home Page
+![Home Page](Home Page.jpeg)
 
-### 🛍️ Product Page
-![Product Page](Products.jpg)
+### Product Page
+![Product Page](Products.jpeg)
 
-### 🛒 Cart & Checkout
-![Cart](ProductCheckout.jpg)
+### Cart & Checkout
+![Cart](Product Checkout.jpeg)
 
-### ⚙️ Admin Dashboard
-![Admin](Admin.jpg)
+### Admin Dashboard
+![Admin](Admin.jpeg)
 
 
 # Kubernetes Store Provisioning Platform
