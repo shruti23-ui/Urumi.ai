@@ -1,0 +1,131 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.storeName }}-auto-setup
+  labels:
+    app: {{ .Values.storeName }}
+    storeId: {{ .Values.storeId }}
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.storeName }}-setup
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: wp-setup
+        image: wordpress:cli-php8.2
+        command:
+        - sh
+        - -c
+        - |
+          echo "=== Waiting for WordPress to be ready ==="
+
+          # Wait for WordPress service to be accessible
+          until curl -f -s http://{{ .Values.storeName }}:{{ .Values.service.port }}/wp-admin/install.php > /dev/null 2>&1; do
+            echo "Waiting for WordPress..."
+            sleep 5
+          done
+
+          echo "WordPress is accessible! Waiting 30 more seconds for files to stabilize..."
+          sleep 30
+
+          echo "=== Starting WordPress Auto-Installation ==="
+
+          # Check if WordPress is already installed
+          if wp core is-installed --url="{{.Values.storeUrl}}" --allow-root 2>/dev/null; then
+            echo "WordPress already installed, skipping..."
+            exit 0
+          fi
+
+          echo "Installing WordPress..."
+          wp core install \
+            --url="{{ .Values.storeUrl }}" \
+            --title="{{ .Values.storeName }}" \
+            --admin_user=admin \
+            --admin_password="{{ .Values.wordpress.adminPassword | default "Admin@123!" }}" \
+            --admin_email="{{ .Values.wordpress.adminEmail | default "admin@example.com" }}" \
+            --skip-email \
+            --allow-root || echo "WordPress install failed"
+
+          echo "Installing WooCommerce plugin..."
+          wp plugin install woocommerce --activate --allow-root || echo "WooCommerce install failed"
+
+          echo "Waiting for WooCommerce to initialize..."
+          sleep 15
+
+          # Verify WooCommerce is activated
+          if ! wp plugin is-active woocommerce --allow-root 2>/dev/null; then
+            echo "WooCommerce not activated, attempting to activate again..."
+            wp plugin activate woocommerce --allow-root || true
+            sleep 10
+          fi
+
+          echo "Configuring WooCommerce settings..."
+          wp option update woocommerce_cod_settings '{"enabled":"yes","title":"Cash on Delivery","description":"Pay with cash upon delivery"}' --format=json --allow-root || true
+          wp option update woocommerce_currency 'INR' --allow-root || true
+          wp option update woocommerce_new_order_settings '{"enabled":"no"}' --format=json --allow-root || true
+
+          echo "Downloading product images..."
+          mkdir -p /tmp/product-images
+
+          curl -s -o /tmp/product-images/tshirt.jpg "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80" || \
+          curl -s -o /tmp/product-images/tshirt.jpg "https://via.placeholder.com/800x800/4A90E2/FFFFFF?text=Cotton+T-Shirt"
+
+          curl -s -o /tmp/product-images/jeans.jpg "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80" || \
+          curl -s -o /tmp/product-images/jeans.jpg "https://via.placeholder.com/800x800/2ECC71/FFFFFF?text=Denim+Jeans"
+
+          curl -s -o /tmp/product-images/shoes.jpg "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80" || \
+          curl -s -o /tmp/product-images/shoes.jpg "https://via.placeholder.com/800x800/E74C3C/FFFFFF?text=Casual+Shoes"
+
+          echo "Uploading images to WordPress..."
+          TSHIRT_IMAGE_ID=$(wp media import /tmp/product-images/tshirt.jpg --porcelain --allow-root 2>/dev/null || echo "")
+          JEANS_IMAGE_ID=$(wp media import /tmp/product-images/jeans.jpg --porcelain --allow-root 2>/dev/null || echo "")
+          SHOES_IMAGE_ID=$(wp media import /tmp/product-images/shoes.jpg --porcelain --allow-root 2>/dev/null || echo "")
+
+          echo "Creating products with images..."
+
+          # Create T-Shirt
+          TSHIRT_ARGS="--name=\"Cotton T-Shirt\" --type=simple --regular_price=500 --description=\"Comfortable cotton t-shirt perfect for everyday wear\" --short_description=\"Premium quality cotton t-shirt\" --manage_stock=true --stock_quantity=100 --status=publish"
+          if [ ! -z "$TSHIRT_IMAGE_ID" ]; then
+            TSHIRT_ARGS="$TSHIRT_ARGS --images='[{\"id\":$TSHIRT_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $TSHIRT_ARGS --user=admin --allow-root || echo "T-Shirt creation failed"
+
+          # Create Jeans
+          JEANS_ARGS="--name=\"Denim Jeans\" --type=simple --regular_price=1200 --description=\"Classic blue denim jeans with comfortable fit\" --short_description=\"Stylish denim jeans\" --manage_stock=true --stock_quantity=50 --status=publish"
+          if [ ! -z "$JEANS_IMAGE_ID" ]; then
+            JEANS_ARGS="$JEANS_ARGS --images='[{\"id\":$JEANS_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $JEANS_ARGS --user=admin --allow-root || echo "Jeans creation failed"
+
+          # Create Shoes
+          SHOES_ARGS="--name=\"Casual Shoes\" --type=simple --regular_price=1500 --description=\"Comfortable casual shoes for daily wear\" --short_description=\"Trendy casual footwear\" --manage_stock=true --stock_quantity=30 --status=publish"
+          if [ ! -z "$SHOES_IMAGE_ID" ]; then
+            SHOES_ARGS="$SHOES_ARGS --images='[{\"id\":$SHOES_IMAGE_ID}]'"
+          fi
+          wp woocommerce product create $SHOES_ARGS --user=admin --allow-root || echo "Shoes creation failed"
+
+          rm -rf /tmp/product-images
+
+          echo "Setting up WooCommerce pages..."
+          wp woocommerce tool run install_pages --user=admin --allow-root || true
+
+          echo "=== WordPress and WooCommerce Auto-Installation Complete! ==="
+          echo "Store URL: {{ .Values.storeUrl }}"
+          echo "Admin Username: admin"
+          echo "Admin Password: {{ .Values.wordpress.adminPassword | default "Admin@123!" }}"
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: "{{ .Values.storeName }}-mysql"
+        - name: WORDPRESS_DB_USER
+          value: {{ .Values.mysql.auth.username }}
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysql.auth.existingSecret | default (printf "%s-mysql-secret" .Values.storeName) }}
+              key: mysql-password
+        - name: WORDPRESS_DB_NAME
+          value: {{ .Values.mysql.auth.database }}
