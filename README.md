@@ -32,13 +32,13 @@ All components are organized to support easy setup, testing, and further develop
 ## 📷 Project Screenshots
 
 ### Home Page
-![Home Page](HomePage.jpeg)
+![Home Page](Home.jpeg)
 
 ### Product Page
 ![Product Page](Products.jpeg)
 
 ### Cart & Checkout
-![Cart](ProductCheckout.jpeg)
+![Cart](Product.jpeg)
 
 ### Admin Dashboard
 ![Admin](Admin.jpeg)
