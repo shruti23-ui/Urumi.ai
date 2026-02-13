@@ -21,16 +21,20 @@ All components are organized to support easy setup, testing, and further develop
 
 ## Live URLs (AWS Production)
 
-**🔄 Deploying to new instance: 51.20.42.151**
+**✅ DEPLOYED on AWS: 51.20.42.151**
 
-Platform will be accessible at:
-- **Platform Dashboard:** http://51.20.42.151:[PORT]/ _(Port will be assigned after deployment)_
-- **Urumi Clothing Store:** http://51.20.42.151:[STORE_PORT]/
-- **Store Admin:** http://51.20.42.151:[STORE_PORT]/wp-admin
+### Platform API
+- **API Endpoint:** http://51.20.42.151:30395/api/stores
+- **Health Check:** http://51.20.42.151:30395/health
+
+### Urumi Clothing Store (Live!)
+- **Store URL:** http://51.20.42.151:30232/
+- **Admin Panel:** http://51.20.42.151:30232/wp-admin
   - Username: `admin`
   - Password: `Admin@123!`
 
-_URLs will be updated once deployment completes (ETA: 10-15 minutes)_
+**Note:** To access from your browser, add AWS Security Group rule:
+- Port Range: 30000-32767, Source: 0.0.0.0/0
 
 ## Disclaimer
 
