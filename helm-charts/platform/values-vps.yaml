@@ -19,6 +19,7 @@ ingress:
 
 api:
   replicas: 2
+  serviceType: NodePort
   env:
     DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
 
@@ -28,4 +29,4 @@ orchestrator:
     DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
 
 dashboard:
-  replicas: 2
+  enabled: false

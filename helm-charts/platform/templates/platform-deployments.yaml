@@ -66,10 +66,13 @@ metadata:
   name: platform-api
   namespace: {{ .Values.namespace }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.api.serviceType | default "ClusterIP" }}
   ports:
   - port: {{ .Values.api.port }}
     targetPort: {{ .Values.api.port }}
+    {{- if eq (.Values.api.serviceType | default "ClusterIP") "NodePort" }}
+    nodePort: {{ .Values.api.nodePort | default 0 }}
+    {{- end }}
   selector:
     app: platform-api
 {{- end }}
@@ -170,10 +173,13 @@ metadata:
   name: platform-dashboard
   namespace: {{ .Values.namespace }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.dashboard.serviceType | default "ClusterIP" }}
   ports:
   - port: {{ .Values.dashboard.port }}
     targetPort: {{ .Values.dashboard.port }}
+    {{- if eq (.Values.dashboard.serviceType | default "ClusterIP") "NodePort" }}
+    nodePort: {{ .Values.dashboard.nodePort | default 0 }}
+    {{- end }}
   selector:
     app: platform-dashboard
 {{- end }}

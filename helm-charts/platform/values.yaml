@@ -28,6 +28,7 @@ api:
     pullPolicy: IfNotPresent
   replicas: 2
   port: 3001
+  serviceType: NodePort
   env:
     NODE_ENV: production
     PORT: "3001"
@@ -69,8 +70,9 @@ dashboard:
     repository: shrutipriya31/store-platform-frontend
     tag: latest
     pullPolicy: IfNotPresent
-  replicas: 2
+  replicas: 1
   port: 80
+  serviceType: NodePort
   resources:
     requests:
       cpu: 50m
