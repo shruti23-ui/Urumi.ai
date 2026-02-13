@@ -11,6 +11,7 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
 **Products:** 3 products live (Shoes, Jeans, T-Shirt)
 
 **Recent Updates:**
+- Deployed React dashboard for store creation on public IP (http://51.20.42.151:30300)
 - Fixed cart by disabling WooCommerce "Coming Soon" mode
 - Switched to Storefront theme for compatibility
 - Improved UX copy: "Curated Fashion for the Modern You"
@@ -54,6 +55,17 @@ curl -X POST http://51.20.42.151:30395/api/stores \
     "engine": "woocommerce"
   }'
 ```
+
+### React Dashboard (Store Creation UI)
+**Dashboard URL:** http://51.20.42.151:30300/
+
+The React dashboard provides a web interface for managing stores:
+- Create new WooCommerce stores with a simple form
+- View all existing stores and their status
+- Monitor store health and provisioning progress
+- Delete stores when no longer needed
+
+The dashboard automatically connects to the Platform API at http://51.20.42.151:30395/api for backend operations.
 
 ### AWS Security Group Configuration
 
