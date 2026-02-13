@@ -146,26 +146,58 @@ spec:
       labels:
         app: platform-dashboard
     spec:
+      initContainers:
+      - name: clone-frontend
+        image: alpine/git:latest
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            git clone --depth 1 https://github.com/shruti23-ui/Urumi.ai.git /tmp/repo
+            cp -r /tmp/repo/frontend/* /app/
+        volumeMounts:
+        - name: frontend-code
+          mountPath: /app
       containers:
       - name: dashboard
         image: "{{ .Values.dashboard.image.repository }}:{{ .Values.dashboard.image.tag }}"
         imagePullPolicy: {{ .Values.dashboard.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.dashboard.port }}
+        workingDir: /app
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            apk add --no-cache npm
+            npm install -g serve
+            cd /app
+            npm install
+            npm run build
+            serve -s dist -l {{ .Values.dashboard.port }}
+        volumeMounts:
+        - name: frontend-code
+          mountPath: /app
+        env:
+        {{- range $key, $value := .Values.dashboard.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
         resources:
           {{- toYaml .Values.dashboard.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 10
+          initialDelaySeconds: 60
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 5
+          initialDelaySeconds: 50
           periodSeconds: 5
+      volumes:
+      - name: frontend-code
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

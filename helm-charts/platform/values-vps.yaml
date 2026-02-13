@@ -33,8 +33,17 @@ dashboard:
   replicas: 1
   serviceType: NodePort
   nodePort: 30300
+  port: 80
   image:
     repository: node
     tag: "20-alpine"
+    pullPolicy: IfNotPresent
   env:
     VITE_API_URL: "http://51.20.42.151:30395/api"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
