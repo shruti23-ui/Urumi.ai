@@ -12,7 +12,7 @@ ingress:
   host: "platform.local.stores.dev"
   # Add your VPS public IP for explicit matching (optional if allowIPAccess is true)
   additionalHosts:
-    - "13.51.146.246"
+    - "51.20.42.151"
   # Allow raw IP access - fixes 404 when using http://<VPS_IP>:31107
   allowIPAccess: true
   annotations:
@@ -21,12 +21,12 @@ ingress:
 api:
   replicas: 2
   env:
-    DEFAULT_DOMAIN_SUFFIX: ".13.51.146.246.nip.io"
+    DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
 
 orchestrator:
   replicas: 1
   env:
-    DEFAULT_DOMAIN_SUFFIX: ".13.51.146.246.nip.io"
+    DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
 
 dashboard:
   replicas: 2

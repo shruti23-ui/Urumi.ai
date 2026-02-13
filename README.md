@@ -19,11 +19,18 @@ The code demonstrates:
 
 All components are organized to support easy setup, testing, and further development.
 
-## Live URLs
+## Live URLs (AWS Production)
 
-- Main Store: http://13.51.146.246:31107/
-- Store Frontend: http://13.51.146.246:31303/
-- Admin / Account Panel: http://13.51.146.246:31303/my-account/
+**🔄 Deploying to new instance: 51.20.42.151**
+
+Platform will be accessible at:
+- **Platform Dashboard:** http://51.20.42.151:[PORT]/ _(Port will be assigned after deployment)_
+- **Urumi Clothing Store:** http://51.20.42.151:[STORE_PORT]/
+- **Store Admin:** http://51.20.42.151:[STORE_PORT]/wp-admin
+  - Username: `admin`
+  - Password: `Admin@123!`
+
+_URLs will be updated once deployment completes (ETA: 10-15 minutes)_
 
 ## Disclaimer
 

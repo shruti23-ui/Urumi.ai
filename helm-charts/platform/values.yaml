@@ -23,7 +23,7 @@ postgresql:
 api:
   enabled: true
   image:
-    repository: platform-api
+    repository: shrutipriya31/store-platform-backend
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 2
@@ -46,7 +46,7 @@ api:
 orchestrator:
   enabled: true
   image:
-    repository: platform-orchestrator
+    repository: shrutipriya31/store-platform-orchestrator
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -66,7 +66,7 @@ orchestrator:
 dashboard:
   enabled: true
   image:
-    repository: platform-dashboard
+    repository: shrutipriya31/store-platform-frontend
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 2

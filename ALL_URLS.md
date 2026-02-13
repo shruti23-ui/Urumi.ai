@@ -1,11 +1,40 @@
 # All URLs - Store Platform Access Guide
 
 **Generated:** February 13, 2026
-**Environment:** Kubernetes (Docker Desktop)
+**Environment:** AWS EC2 (51.20.42.151) & Kubernetes (Docker Desktop)
 
 ---
 
-## 🌐 Platform URLs
+## ☁️ AWS Production URLs (NEW - 51.20.42.151)
+
+### Main Dashboard (AWS)
+```
+http://51.20.42.151:[NODEPORT]/
+```
+**Status:** 🔄 Pending Deployment
+**Description:** Production Store Platform Dashboard
+**Note:** Replace [NODEPORT] with actual NodePort after deployment (typically 31000-32000)
+
+### API Endpoints (AWS)
+```
+http://51.20.42.151:[NODEPORT]/api/stores          # List all stores
+http://51.20.42.151:[NODEPORT]/api/stores/{id}     # Get specific store
+http://51.20.42.151:[NODEPORT]/health              # Health check
+```
+
+### Alternative Domain (AWS with nip.io)
+```
+http://platform.51.20.42.151.nip.io:[NODEPORT]/
+```
+
+**To Deploy:**
+1. SSH: `ssh -i store-platform-key.pem ubuntu@51.20.42.151`
+2. Run: `cd Urumi.ai && ./deploy-to-aws-new.sh`
+3. Check: `sudo kubectl get svc -n store-platform`
+
+---
+
+## 🌐 Platform URLs (Local Development)
 
 ### Main Dashboard
 ```
@@ -55,7 +84,7 @@ http://platform.local.stores.dev/
 
 ---
 
-### Store 2: Clothing Store ⭐ (NodePort Available)
+### Store 2: Clothing Store  (NodePort Available)
 - **Namespace:** `store-clothing-store-8517b785`
 - **Age:** 158 minutes
 - **Status:** Active
