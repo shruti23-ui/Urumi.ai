@@ -10,9 +10,8 @@ postgresql:
 
 ingress:
   host: "platform.local.stores.dev"
-  # Add your VPS public IP for explicit matching (optional if allowIPAccess is true)
-  additionalHosts:
-    - "51.20.42.151"
+  # Use allowIPAccess for raw IP access instead of additionalHosts
+  additionalHosts: []
   # Allow raw IP access - fixes 404 when using http://<VPS_IP>:31107
   allowIPAccess: true
   annotations:
