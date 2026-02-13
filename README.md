@@ -50,6 +50,90 @@ Description: Kubernetes NodePort Services
 
 ---
 
+## Admin Access
+
+### Accessing the Store Admin Panel
+
+**URL:** http://51.20.42.151:30232/wp-admin
+
+**Credentials:**
+- Username: `admin`
+- Password: `Admin@123!`
+
+### What You Can Do as Admin
+
+**Dashboard Overview:**
+- View orders, sales, and store statistics
+- Monitor recent customer activity
+- Check WooCommerce analytics
+
+**Products Management:**
+- Add, edit, or delete products
+- Set prices and manage inventory
+- Upload product images
+- Configure product categories and tags
+
+**Orders:**
+- View all customer orders
+- Change order status (Processing, Completed, Cancelled)
+- Process refunds
+- Print invoices
+
+**WooCommerce Settings:**
+- Configure payment gateways (COD enabled by default)
+- Set up shipping methods and rates
+- Manage tax settings
+- Configure email notifications
+
+**Theme & Appearance:**
+- Currently using Storefront theme
+- Customize colors and typography
+- Manage menus and widgets
+- Edit homepage layout
+
+**Users:**
+- View customer accounts
+- Add new admin users
+- Manage user roles and permissions
+
+### Viewing Store as Customer
+
+To see what customers see:
+1. Open http://51.20.42.151:30232/ in an incognito/private window
+2. Browse products at http://51.20.42.151:30232/shop/
+3. Add items to cart and test checkout flow
+4. Use COD (Cash on Delivery) payment method
+
+### Quick Admin Tasks
+
+**Add a new product:**
+```
+1. Go to Products → Add New
+2. Enter product name and description
+3. Set regular price in INR (₹)
+4. Upload product image
+5. Set stock status to "In stock"
+6. Click Publish
+```
+
+**View orders:**
+```
+1. Go to WooCommerce → Orders
+2. Click on any order to see details
+3. Change status using dropdown (Processing/Completed)
+4. Save changes
+```
+
+**Check store settings:**
+```
+1. Go to WooCommerce → Settings
+2. Review General, Products, Shipping, Payments tabs
+3. Payment: COD is enabled
+4. Currency: INR (₹)
+```
+
+---
+
 ## Local Development
 
 ### Prerequisites
