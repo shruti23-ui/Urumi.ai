@@ -1,22 +1,22 @@
 # Urumi Clothing - Multi-Tenant E-Commerce Platform
 
-Kubernetes-based multi-tenant WooCommerce store provisioning platform with automated deployment and lifecycle management.
+A Kubernetes-based platform for provisioning and managing WooCommerce stores. Each store gets its own isolated namespace with automated WordPress installation, product setup, and lifecycle management.
 
 ## Live Deployment
 
-**Production URL:** http://51.20.42.151:30232/
+**Production:** http://51.20.42.151:30232/
 
 ### Urumi Clothing Store
 - Homepage: http://51.20.42.151:30232/
 - Shop: http://51.20.42.151:30232/shop/
-- Admin Panel: http://51.20.42.151:30232/wp-admin
+- Admin: http://51.20.42.151:30232/wp-admin
   - Username: `admin`
   - Password: `Admin@123!`
 
 ### Platform API
-- API Root: http://51.20.42.151:30395/
-- Health Check: http://51.20.42.151:30395/health
-- Stores Endpoint: http://51.20.42.151:30395/api/stores
+- Root: http://51.20.42.151:30395/
+- Health: http://51.20.42.151:30395/health
+- Stores: http://51.20.42.151:30395/api/stores
 
 ### AWS Security Group Configuration
 
@@ -35,18 +35,18 @@ Description: Kubernetes NodePort Services
 
 ## Store Features
 
-**Current Products:**
+**Products:**
 - Casual Shoes - ₹1,500.00
 - Denim Jeans - ₹1,200.00
 - Cotton T-Shirt - ₹500.00
 
-**Functionality:**
+**What's included:**
 - Hero banner with brand identity
 - Featured products display
 - Shopping cart with session persistence
-- Cash on Delivery payment gateway
-- Responsive mobile-first design
-- WordPress 6.4 + WooCommerce backend
+- Cash on Delivery payment
+- Mobile-responsive design
+- WordPress 6.4 + WooCommerce
 
 ---
 
@@ -63,7 +63,7 @@ Description: Kubernetes NodePort Services
 docker-compose up -d
 ```
 
-**Service URLs:**
+This starts:
 - Backend API: http://localhost:3001/
 - Backend Health: http://localhost:3001/health
 - Frontend Dashboard: http://localhost:3000
@@ -86,15 +86,15 @@ cd backend
 npm install
 npm run dev
 ```
-Running at: http://localhost:3001
+Runs at: http://localhost:3001
 
-**3. Frontend Dashboard:**
+**3. Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Running at: http://localhost:5173
+Runs at: http://localhost:5173
 
 **4. Verify Installation:**
 ```bash
@@ -137,33 +137,33 @@ Expected response:
 ### Components
 
 **Backend API** (Node.js/Express/TypeScript)
-- RESTful API for store management
-- Rate limiting (100 req/15min)
-- User quota enforcement (10 stores/user)
+- REST API for store management
+- Rate limiting: 100 requests per 15 minutes
+- User quotas: 10 stores per user
 - CORS with origin whitelist
 - Health check endpoints
 
 **Orchestrator** (Node.js/TypeScript)
-- Reconciliation loop (5-30s polling)
-- Helm chart deployment automation
-- Store lifecycle management
+- Reconciliation loop polls every 5-30 seconds
+- Deploys Helm charts automatically
+- Manages store lifecycle
 - Exponential backoff on failures
 
-**Frontend Dashboard** (React/Vite/TypeScript)
+**Frontend** (React/Vite/TypeScript)
 - Store creation interface
 - Status monitoring
-- Event logs viewer
+- Event logs
 
 **PostgreSQL 15**
-- Platform metadata storage
+- Platform metadata
 - Store provisioning queue
-- Event audit logs
+- Audit logs
 
 **Helm Charts**
 - WooCommerce store templates
 - WordPress 6.4 + MySQL 8.0
-- Persistent volume claims
-- Resource quotas and limits
+- Persistent volumes
+- Resource quotas
 
 ---
 
@@ -399,11 +399,11 @@ curl http://localhost:3001/api/stores/abc123/events \
 
 ## Troubleshooting
 
-### Localhost Connection Refused
+### Can't connect to localhost:3001
 
-**Issue:** `ERR_CONNECTION_REFUSED` on localhost:3001
+**Problem:** Getting `ERR_CONNECTION_REFUSED`
 
-**Solution:**
+**Fix:**
 ```bash
 # Check if backend is running
 netstat -ano | findstr :3001
@@ -417,26 +417,26 @@ npm run dev
 curl http://localhost:3001/health
 ```
 
-### AWS Store Not Accessible
+### Can't access AWS store
 
-**Issue:** Cannot access store from browser
+**Problem:** Site not loading in browser
 
-**Solution:** Configure AWS Security Group
+**Fix:** Add Security Group rule
 1. Navigate to: AWS Console → EC2 → Security Groups
 2. Select: launch-wizard-2 (eu-north-1)
 3. Add inbound rule: TCP ports 30000-32767, source 0.0.0.0/0
 
-### Store Creation Fails Locally
+### Store creation fails locally
 
-**Issue:** Store creation returns error
+**Problem:** Error when creating store
 
-**Expected Behavior:** Store creation requires Kubernetes cluster. Local development environment does not support store provisioning. Use AWS deployment for full functionality.
+**Note:** Store creation needs a Kubernetes cluster. Local dev doesn't support provisioning. Use AWS deployment for full functionality.
 
-### Database Connection Error
+### Database connection error
 
-**Issue:** Backend cannot connect to PostgreSQL
+**Problem:** Backend can't connect to PostgreSQL
 
-**Solution:**
+**Fix:**
 ```bash
 # Check if PostgreSQL is running
 docker ps | grep postgres
@@ -452,11 +452,11 @@ docker run -d --name postgres -p 5432:5432 \
 psql -h localhost -U postgres -d store_platform
 ```
 
-### Kubernetes Pods Stuck in Pending
+### Pods stuck in Pending
 
-**Issue:** Platform pods not starting
+**Problem:** Platform pods not starting
 
-**Solution:**
+**Fix:**
 ```bash
 # Check pod status
 kubectl get pods -n store-platform
