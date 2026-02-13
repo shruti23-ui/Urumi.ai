@@ -40,6 +40,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://localhost:5173',
   'http://127.0.0.1',
   'http://127.0.0.1:80',
+  'http://51.20.42.151',
+  'http://51.20.42.151:31107',
+  'http://platform.51.20.42.151.nip.io',
 ];
 
 app.use(cors({
