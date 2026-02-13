@@ -2,6 +2,23 @@
 
 A Kubernetes-based platform for provisioning and managing WooCommerce stores. Each store gets its own isolated namespace with automated WordPress installation, product setup, and lifecycle management.
 
+## Current Status
+
+**Store Status:** Fully operational
+**Theme:** Storefront (WooCommerce official theme)
+**Cart & Checkout:** Working
+**Payment:** Cash on Delivery enabled
+**Products:** 3 products live (Shoes, Jeans, T-Shirt)
+
+**Recent Updates:**
+- Fixed cart functionality by switching to Storefront theme
+- Improved UX copy: "Curated Fashion for the Modern You"
+- Updated all URLs to production endpoints
+- Added comprehensive admin documentation
+- Cleaned up codebase (removed .claude traces)
+
+---
+
 ## Live Deployment
 
 **Production:** http://51.20.42.151:30232/
@@ -47,6 +64,7 @@ Description: Kubernetes NodePort Services
 - Cash on Delivery payment
 - Mobile-responsive design
 - WordPress 6.4 + WooCommerce
+- Storefront theme (optimized for WooCommerce)
 
 ---
 
@@ -509,6 +527,22 @@ curl http://localhost:3001/health
 1. Navigate to: AWS Console → EC2 → Security Groups
 2. Select: launch-wizard-2 (eu-north-1)
 3. Add inbound rule: TCP ports 30000-32767, source 0.0.0.0/0
+
+### Cart not showing products
+
+**Problem:** Products added to cart don't appear on cart page
+
+**Solution:** This issue was caused by theme incompatibility. The store now uses Storefront theme (WooCommerce's official theme) which fully supports cart functionality.
+
+**If you still experience cart issues:**
+```bash
+# SSH into AWS server
+ssh -i ~/.ssh/aws-key.pem ubuntu@51.20.42.151
+
+# Clear WooCommerce sessions and cache
+sudo k3s kubectl exec -n store-urumi-clothing-04f87684 <pod-name> -c wp-setup -- wp cache flush --allow-root
+sudo k3s kubectl exec -n store-urumi-clothing-04f87684 <pod-name> -c wp-setup -- wp transient delete --all --allow-root
+```
 
 ### Store creation fails locally
 
