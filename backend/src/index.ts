@@ -95,6 +95,24 @@ app.get('/health', storeController.healthCheck.bind(storeController));
 app.get('/health/live', storeController.livenessCheck.bind(storeController));
 app.get('/health/ready', storeController.readinessCheck.bind(storeController));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Urumi Store Platform API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      stores: '/api/stores',
+      createStore: 'POST /api/stores',
+      getStore: '/api/stores/:id',
+      deleteStore: 'DELETE /api/stores/:id',
+      storeEvents: '/api/stores/:id/events'
+    },
+    documentation: 'https://github.com/shruti23-ui/Urumi.ai'
+  });
+});
+
 // Global rate limiter (applied to all routes except health checks above)
 app.use(globalRateLimiter);
 
