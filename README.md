@@ -1,311 +1,626 @@
-## 📌 Project Overview
+# Urumi Clothing - Multi-Tenant E-Commerce Platform
 
-This project is a cloud-deployed e-commerce platform developed to demonstrate full-stack development and basic DevOps skills.
+Kubernetes-based multi-tenant WooCommerce store provisioning platform with automated deployment and lifecycle management.
 
-It includes a functional online store with user authentication, product management, shopping cart, checkout system, and an admin panel. The system is deployed on AWS and is accessible through public URLs.
+## Live Deployment
 
-The project focuses on practical implementation of web technologies, cloud deployment, and version control using GitHub.
+**Production URL:** http://51.20.42.151:30232/
 
-## Code Overview
-
-The repository contains the complete source code for the platform, including frontend, backend, configuration files, and deployment scripts.
-
-The code demonstrates:
-- Web application development
-- AWS cloud deployment
-- Environment configuration
-- Version control best practices
-- Basic automation and maintenance workflows
-
-All components are organized to support easy setup, testing, and further development.
-
-## Live URLs (AWS Production)
-
-**✅ DEPLOYED on AWS: 51.20.42.151**
-
-### Platform API
-- **API Endpoint:** http://51.20.42.151:30395/api/stores
-- **Health Check:** http://51.20.42.151:30395/health
-
-### Urumi Clothing Store (Live!)
-- **Store URL:** http://51.20.42.151:30232/
-- **Admin Panel:** http://51.20.42.151:30232/wp-admin
+### Urumi Clothing Store
+- Homepage: http://51.20.42.151:30232/
+- Shop: http://51.20.42.151:30232/shop/
+- Admin Panel: http://51.20.42.151:30232/wp-admin
   - Username: `admin`
   - Password: `Admin@123!`
 
-**Note:** To access from your browser, add AWS Security Group rule:
-- Port Range: 30000-32767, Source: 0.0.0.0/0
+### Platform API
+- API Root: http://51.20.42.151:30395/
+- Health Check: http://51.20.42.151:30395/health
+- Stores Endpoint: http://51.20.42.151:30395/api/stores
 
-## Disclaimer
+### AWS Security Group Configuration
 
-“Urumi Clothing” is a fictional/sample brand name used only for demonstration purposes. This project is not associated with any real business or commercial entity.
+To access from external networks, configure AWS Security Group inbound rule:
 
-## 📷 Project Screenshots
+```
+Type: Custom TCP
+Port Range: 30000-32767
+Source: 0.0.0.0/0
+Description: Kubernetes NodePort Services
+```
 
-### Home Page
-![Home Page](Home.jpeg)
+**Location:** AWS Console → EC2 → Security Groups → launch-wizard-2 (eu-north-1)
 
-### Product Page
-![Product Page](Products.jpeg)
+---
 
-### Cart & Checkout
-![Cart](Product.jpeg)
+## Store Features
 
-### Admin Dashboard
-![Admin](Admin.jpeg)
+**Current Products:**
+- Casual Shoes - ₹1,500.00
+- Denim Jeans - ₹1,200.00
+- Cotton T-Shirt - ₹500.00
 
+**Functionality:**
+- Hero banner with brand identity
+- Featured products display
+- Shopping cart with session persistence
+- Cash on Delivery payment gateway
+- Responsive mobile-first design
+- WordPress 6.4 + WooCommerce backend
 
-# Kubernetes Store Provisioning Platform
+---
 
-Production-ready multi-tenant WooCommerce store provisioning on Kubernetes with automated deployment, isolation, and lifecycle management.
+## Local Development
+
+### Prerequisites
+- Node.js 20+
+- Docker Desktop
+- PostgreSQL 15 (or use Docker)
+
+### Quick Start with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+**Service URLs:**
+- Backend API: http://localhost:3001/
+- Backend Health: http://localhost:3001/health
+- Frontend Dashboard: http://localhost:3000
+- PostgreSQL: localhost:5432
+
+### Manual Setup
+
+**1. Database:**
+```bash
+docker run -d --name postgres -p 5432:5432 \
+  -e POSTGRES_DB=store_platform \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  postgres:15-alpine
+```
+
+**2. Backend API:**
+```bash
+cd backend
+npm install
+npm run dev
+```
+Running at: http://localhost:3001
+
+**3. Frontend Dashboard:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Running at: http://localhost:5173
+
+**4. Verify Installation:**
+```bash
+curl http://localhost:3001/health
+```
+
+Expected response:
+```json
+{"status":"healthy","database":"connected","timestamp":"..."}
+```
+
+---
 
 ## Architecture
 
 ```
-User → React Dashboard → REST API → PostgreSQL ← Orchestrator → Helm → Kubernetes (Store Pods)
+┌─────────────┐     ┌──────────┐     ┌────────────┐     ┌─────────────┐
+│   Client    │────▶│   API    │────▶│ PostgreSQL │◀────│ Orchestrator│
+│  (Browser)  │     │ (Express)│     │            │     │   (Node.js) │
+└─────────────┘     └──────────┘     └────────────┘     └──────┬──────┘
+                                                                │
+                                                                ▼
+                                                         ┌──────────────┐
+                                                         │     Helm     │
+                                                         │   Operator   │
+                                                         └──────┬───────┘
+                                                                │
+                                                                ▼
+                                                    ┌───────────────────────┐
+                                                    │  Kubernetes (k3s)     │
+                                                    │  ┌─────────────────┐  │
+                                                    │  │ Store Namespace │  │
+                                                    │  │  - WordPress    │  │
+                                                    │  │  - MySQL        │  │
+                                                    │  │  - PVC          │  │
+                                                    │  └─────────────────┘  │
+                                                    └───────────────────────┘
 ```
 
-**Components:**
-- **Backend API** (Node.js/Express) - Store CRUD, rate limiting, quotas
-- **Orchestrator** (Node.js) - Reconciliation loop, Helm deployments
-- **Dashboard** (React) - Store management UI
-- **PostgreSQL** - Platform metadata
-- **Helm Charts** - WooCommerce store templates
+### Components
 
-## Features
+**Backend API** (Node.js/Express/TypeScript)
+- RESTful API for store management
+- Rate limiting (100 req/15min)
+- User quota enforcement (10 stores/user)
+- CORS with origin whitelist
+- Health check endpoints
 
-- **Namespace Isolation** - Each store in dedicated namespace with resource quotas (2 CPU, 4Gi RAM)
-- **Auto-Installation** - WordPress, WooCommerce, sample products with images via sidecar container
-- **RBAC** - Least-privilege service account permissions
-- **Rate Limiting** - 100 req/15min globally, 10 stores max per user
-- **Health Checks** - Liveness/readiness probes with exemption for health endpoints
-- **NodePort Access** - External access via NodePort services
-- **Reconciliation** - 5-30s polling with exponential backoff
+**Orchestrator** (Node.js/TypeScript)
+- Reconciliation loop (5-30s polling)
+- Helm chart deployment automation
+- Store lifecycle management
+- Exponential backoff on failures
 
-## Quick Start (Production/k3s)
+**Frontend Dashboard** (React/Vite/TypeScript)
+- Store creation interface
+- Status monitoring
+- Event logs viewer
+
+**PostgreSQL 15**
+- Platform metadata storage
+- Store provisioning queue
+- Event audit logs
+
+**Helm Charts**
+- WooCommerce store templates
+- WordPress 6.4 + MySQL 8.0
+- Persistent volume claims
+- Resource quotas and limits
+
+---
+
+## Platform Features
+
+**Namespace Isolation**
+- Dedicated Kubernetes namespace per store
+- Resource quotas: 2 CPU, 4Gi RAM
+- Network policies for pod isolation
+- Persistent storage: 20Gi per store
+
+**Automated Store Provisioning**
+- WordPress installation via sidecar container
+- WooCommerce activation and configuration
+- Sample products with Pexels images
+- Currency configuration (INR)
+- Payment gateway setup (COD)
+
+**Security & RBAC**
+- Service account with least-privilege permissions
+- Kubernetes secrets for credentials
+- Non-root containers (except setup sidecar)
+- Helmet.js security headers
+- CORS origin validation
+
+**Access Control**
+- NodePort services (30000-32767 range)
+- Rate limiting middleware
+- Request size limits (1MB)
+- Correlation ID tracking
+
+---
+
+## Deployment on AWS
 
 ### Prerequisites
-- k3s cluster on VPS
-- kubectl configured
-- Docker Hub account
+- AWS EC2 instance (t2.medium minimum, 2 vCPU, 4GB RAM)
+- k3s Kubernetes distribution
+- Docker runtime
+- kubectl CLI
+- Helm 3
 
-### Deploy
+### Installation Steps
 
 ```bash
-# Clone repo
-git clone <your-repo-url>
+# Clone repository
+git clone https://github.com/shruti23-ui/Urumi.ai
 cd Urumi.ai_Round_1
 
-# Set environment variables
-export DB_PASSWORD=your_postgres_password
-export KUBECONFIG=~/.kube/config
+# Deploy platform using Helm
+helm upgrade --install store-platform ./helm-charts/platform \
+  -f helm-charts/platform/values-vps.yaml \
+  --namespace store-platform \
+  --create-namespace
 
-# Create namespace
-kubectl create namespace store-platform
-
-# Create postgres secret
-kubectl create secret generic postgres-secret \
-  --from-literal=password=$DB_PASSWORD \
-  -n store-platform
-
-# Deploy postgres
-kubectl apply -f k8s/postgres-deployment.yaml
-
-# Build and push images
-docker build -t <your-dockerhub>/platform-api:latest ./backend
-docker build -t <your-dockerhub>/platform-orchestrator:latest ./orchestrator
-docker build -t <your-dockerhub>/platform-dashboard:latest ./frontend
-
-docker push <your-dockerhub>/platform-api:latest
-docker push <your-dockerhub>/platform-orchestrator:latest
-docker push <your-dockerhub>/platform-dashboard:latest
-
-# Update image references in k8s/*.yaml
-# Then deploy
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/orchestrator-deployment.yaml
-kubectl apply -f k8s/dashboard-deployment.yaml
-
-# Apply RBAC
-kubectl apply -f k8s/rbac.yaml
-
-# Verify
+# Verify deployment
 kubectl get pods -n store-platform
+kubectl get svc -n store-platform
+
+# Check platform API
+curl http://localhost:30395/health
 ```
 
-### Access
+### Create a Store via API
 
-- **Dashboard**: `http://<VPS_IP>:31107`
-- **API**: `http://<VPS_IP>:32129/api/stores`
-
-## Store Creation
-
-1. Open dashboard → Create Store
-2. Enter name → Submit
-3. Wait 2-3 minutes for provisioning
-4. Access store via NodePort URL shown in dashboard
-
-**Auto-configured:**
-- WordPress installed with admin credentials
-- WooCommerce activated with INR currency, COD enabled
-- 3 sample products (T-Shirt ₹500, Jeans ₹1200, Shoes ₹1500)
-- Product images from Unsplash
-
-## Technical Details
-
-### Store Lifecycle
-
-```
-POST /api/stores → DB (provisioning) → Orchestrator polls → Helm install → Pods ready → DB (ready)
+```bash
+curl -X POST http://<AWS_IP>:30395/api/stores \
+  -H "Content-Type: application/json" \
+  -H "x-user-id: demo-user" \
+  -d '{
+    "name": "My Fashion Store",
+    "engine": "woocommerce"
+  }'
 ```
 
-### Helm Chart Structure
-
-```
-orchestrator/helm-charts/woocommerce-store/
-├── templates/
-│   ├── namespace.yaml          # Namespace with resource quota
-│   ├── deployment.yaml         # WordPress + wp-setup sidecar
-│   ├── mysql-statefulset.yaml  # MySQL 8.0
-│   ├── service.yaml           # NodePort service
-│   └── secrets.yaml           # MySQL credentials
-└── values.yaml
-```
-
-### wp-setup Sidecar
-
-Runs as root (UID 0) in WordPress pod:
-- Waits for WordPress availability
-- Installs WordPress with provided credentials
-- Activates and configures WooCommerce
-- Downloads product images from Unsplash
-- Creates 3 sample products with images
-- Fixes file permissions
-
-### Resource Quotas
-
-Per store namespace:
-```yaml
-hard:
-  cpu: "2"
-  memory: 4Gi
-  persistentvolumeclaims: "5"
-  requests.storage: 20Gi
+Response:
+```json
+{
+  "store": {
+    "id": "abc123",
+    "name": "My Fashion Store",
+    "status": "provisioning",
+    "namespace": "store-my-fashion-store-abc123"
+  }
+}
 ```
 
-### Rate Limits
+Store will be ready in 2-3 minutes. Access via NodePort URL returned in response.
 
-```javascript
-// Global
-windowMs: 900000 (15min)
-max: 100 requests
+---
 
-// Store creation
-max: 10 stores per user
+## Technology Stack
 
-// Health check exemption
-skip: (req) => req.path === '/health'
-```
+**Backend**
+- Runtime: Node.js 20
+- Framework: Express 4
+- Language: TypeScript 5
+- Database: PostgreSQL 15
+- ORM: node-postgres
 
-## Environment Variables
+**Orchestrator**
+- Runtime: Node.js 20
+- Language: TypeScript 5
+- Kubernetes Client: Helm SDK
+- Database: PostgreSQL 15
+
+**Frontend**
+- Framework: React 18
+- Build Tool: Vite 5
+- Language: TypeScript 5
+- HTTP Client: Axios
+
+**Store Template**
+- CMS: WordPress 6.4
+- E-commerce: WooCommerce 8+
+- Database: MySQL 8.0
+- Server: Apache 2.4
+
+**Infrastructure**
+- Orchestration: Kubernetes (k3s)
+- Package Manager: Helm 3
+- Container Runtime: Docker
+- Cloud Provider: AWS EC2
+- Region: eu-north-1
+
+---
+
+## Environment Configuration
 
 ### Backend (.env)
+
 ```bash
-DB_HOST=postgres
-DB_PASSWORD=<secret>
+PORT=3001
+NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=store_platform
+DB_USER=postgres
+DB_PASSWORD=postgres
 KUBECONFIG=/path/to/.kube/config
 PLATFORM_NAMESPACE=store-platform
 MAX_STORES_PER_USER=10
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 DEFAULT_DOMAIN_SUFFIX=.local.stores.dev
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+```
+
+### Frontend (.env)
+
+```bash
+# Local development
+VITE_API_URL=http://localhost:3001/api
+```
+
+### Frontend (.env.production)
+
+```bash
+# AWS production
+VITE_API_URL=http://51.20.42.151:30395/api
 ```
 
 ### Orchestrator (.env)
+
 ```bash
-DB_HOST=postgres
-DB_PASSWORD=<secret>
-HELM_CHARTS_PATH=./helm-charts
+NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=store_platform
+DB_USER=postgres
+DB_PASSWORD=postgres
+KUBECONFIG=/path/to/.kube/config
+PLATFORM_NAMESPACE=store-platform
 MIN_POLL_INTERVAL_MS=5000
 MAX_POLL_INTERVAL_MS=30000
+HELM_CHARTS_PATH=./helm-charts
+DEFAULT_DOMAIN_SUFFIX=.local.stores.dev
+HELM_RELEASE_TIMEOUT=600
 ```
+
+---
+
+## API Documentation
+
+### Endpoints
+
+**GET /** - API Information
+```bash
+curl http://localhost:3001/
+```
+
+**GET /health** - Health Check
+```bash
+curl http://localhost:3001/health
+```
+
+**GET /api/stores** - List All Stores
+```bash
+curl http://localhost:3001/api/stores \
+  -H "x-user-id: user123"
+```
+
+**POST /api/stores** - Create Store
+```bash
+curl -X POST http://localhost:3001/api/stores \
+  -H "Content-Type: application/json" \
+  -H "x-user-id: user123" \
+  -d '{
+    "name": "Fashion Boutique",
+    "engine": "woocommerce"
+  }'
+```
+
+**GET /api/stores/:id** - Get Store Details
+```bash
+curl http://localhost:3001/api/stores/abc123 \
+  -H "x-user-id: user123"
+```
+
+**DELETE /api/stores/:id** - Delete Store
+```bash
+curl -X DELETE http://localhost:3001/api/stores/abc123 \
+  -H "x-user-id: user123"
+```
+
+**GET /api/stores/:id/events** - Get Store Events
+```bash
+curl http://localhost:3001/api/stores/abc123/events \
+  -H "x-user-id: user123"
+```
+
+---
 
 ## Troubleshooting
 
-### Dashboard shows 404 at http://&lt;VPS_IP&gt;:31107
+### Localhost Connection Refused
 
-**Root cause:** Ingress only matched `platform.local.stores.dev`. Requests with Host header `13.51.146.246` didn't match any rule.
+**Issue:** `ERR_CONNECTION_REFUSED` on localhost:3001
 
-**Fix:** Use the VPS values file when deploying:
-
+**Solution:**
 ```bash
-helm upgrade --install store-platform ./helm-charts/platform \
-  -f helm-charts/platform/values-vps.yaml \
-  --create-namespace
+# Check if backend is running
+netstat -ano | findstr :3001
+
+# Start backend
+cd backend
+npm install
+npm run dev
+
+# Verify
+curl http://localhost:3001/health
 ```
 
-For custom IP, set in values:
-```yaml
-ingress:
-  additionalHosts: ["YOUR_VPS_IP"]
-  allowIPAccess: true
-```
+### AWS Store Not Accessible
 
-### General troubleshooting
+**Issue:** Cannot access store from browser
 
+**Solution:** Configure AWS Security Group
+1. Navigate to: AWS Console → EC2 → Security Groups
+2. Select: launch-wizard-2 (eu-north-1)
+3. Add inbound rule: TCP ports 30000-32767, source 0.0.0.0/0
+
+### Store Creation Fails Locally
+
+**Issue:** Store creation returns error
+
+**Expected Behavior:** Store creation requires Kubernetes cluster. Local development environment does not support store provisioning. Use AWS deployment for full functionality.
+
+### Database Connection Error
+
+**Issue:** Backend cannot connect to PostgreSQL
+
+**Solution:**
 ```bash
-# Check orchestrator logs
-kubectl logs -n store-platform deployment/platform-orchestrator
+# Check if PostgreSQL is running
+docker ps | grep postgres
 
-# Check store pods
-kubectl get pods -n <store-namespace>
+# Start PostgreSQL
+docker run -d --name postgres -p 5432:5432 \
+  -e POSTGRES_DB=store_platform \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  postgres:15-alpine
 
-# Fix database password
-kubectl set env deployment/platform-orchestrator \
-  -n store-platform DB_PASSWORD=<correct_password>
-
-# Fix RBAC permissions
-kubectl apply -f k8s/rbac.yaml
-
-# Force restart pods
-kubectl delete pod -n <namespace> <pod-name> --force --grace-period=0
-
-# Manually delete stuck namespace
-kubectl delete namespace <store-namespace> --grace-period=0 --force
+# Test connection
+psql -h localhost -U postgres -d store_platform
 ```
 
-## Production Notes
+### Kubernetes Pods Stuck in Pending
 
-- Use managed PostgreSQL (RDS/Cloud SQL) for production
-- Enable HTTPS with cert-manager + Let's Encrypt
-- Increase orchestrator replicas for higher throughput
-- Monitor with Prometheus/Grafana
-- Set up backup for store PVCs
+**Issue:** Platform pods not starting
 
-## Security
+**Solution:**
+```bash
+# Check pod status
+kubectl get pods -n store-platform
 
-- Non-root containers where possible (except wp-setup sidecar)
-- Secrets stored in Kubernetes Secrets
-- RBAC with least privilege
-- Network policies for pod isolation
-- Resource limits prevent exhaustion
+# Check events
+kubectl describe pod <pod-name> -n store-platform
 
-## Stack
+# Check logs
+kubectl logs <pod-name> -n store-platform
 
-- **Backend**: Node.js 20, Express, TypeScript, PostgreSQL
-- **Orchestrator**: Node.js 20, TypeScript, Helm SDK, node-postgres
-- **Frontend**: React, Vite, TypeScript
-- **Stores**: WordPress 6.x, WooCommerce, MySQL 8.0
-- **Infrastructure**: Kubernetes (k3s), Helm 3, Docker
+# Restart deployment
+kubectl rollout restart deployment/platform-api -n store-platform
+```
 
-## Recent Commits
+---
+
+## Security Considerations
+
+**Rate Limiting**
+- Global: 100 requests per 15-minute window
+- Store creation: Maximum 10 stores per user
+- Health endpoints: Exempt from rate limiting
+
+**CORS Policy**
+- Whitelist-based origin validation
+- Credentials support enabled
+- Preflight request handling
+
+**Authentication**
+- User identification via x-user-id header
+- Future: JWT token-based authentication
+
+**Container Security**
+- Non-root user execution (except WordPress setup sidecar)
+- Read-only root filesystem where applicable
+- Security context constraints
+
+**Network Security**
+- Kubernetes network policies
+- Namespace isolation
+- Service-to-service communication restrictions
+
+---
+
+## Project Structure
 
 ```
-2f55d9d - Use sidecar container for WordPress auto-setup
-f5f38ea - Exempt health checks from rate limiter
-9dc4302 - Replace init container with Job for setup
-41fe751 - Add automatic product images from Unsplash
-8fc7681 - Improve WooCommerce auto-installation timing
+Urumi.ai_Round_1/
+├── backend/                    # Express API server
+│   ├── src/
+│   │   ├── index.ts           # Application entry point
+│   │   ├── config/            # Database configuration
+│   │   ├── controllers/       # Request handlers
+│   │   ├── middleware/        # Rate limiting, validation
+│   │   └── utils/             # Logger, helpers
+│   ├── migrations/            # Database migrations
+│   ├── .env                   # Environment variables
+│   └── Dockerfile
+│
+├── frontend/                   # React dashboard
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   └── services/          # API client
+│   ├── .env                   # API URL configuration
+│   └── Dockerfile
+│
+├── orchestrator/               # Kubernetes reconciliation
+│   ├── src/
+│   │   ├── index.ts
+│   │   ├── k8s/               # Helm SDK integration
+│   │   └── services/          # Reconciler logic
+│   ├── .env
+│   └── Dockerfile
+│
+├── helm-charts/
+│   ├── platform/              # Platform infrastructure
+│   │   ├── values.yaml
+│   │   ├── values-vps.yaml    # AWS configuration
+│   │   └── templates/
+│   │       ├── platform-deployments.yaml
+│   │       ├── postgres-statefulset.yaml
+│   │       ├── ingress.yaml
+│   │       └── rbac.yaml
+│   │
+│   └── woocommerce-store/     # Store template
+│       ├── values.yaml
+│       └── templates/
+│           ├── wordpress-deployment.yaml
+│           ├── mysql-deployment.yaml
+│           └── service.yaml
+│
+├── k8s/                       # Kubernetes manifests
+│   └── rbac/
+│       └── orchestrator-rbac.yaml
+│
+├── scripts/                   # Automation scripts
+│   └── setup-fashion-store.sh
+│
+├── docker-compose.yml         # Local development
+├── README.md                  # This file
+├── Home.jpeg                  # Screenshots
+├── Products.jpeg
+├── Product.jpeg
+└── Admin.jpeg
 ```
+
+---
+
+## Performance Metrics
+
+**API Response Times**
+- Health check: <10ms
+- Store listing: <50ms
+- Store creation: 2-3 minutes (Kubernetes provisioning)
+
+**Resource Usage (per store)**
+- CPU: 100m-1000m (requests-limits)
+- Memory: 256Mi-2Gi (requests-limits)
+- Storage: 10Gi (WordPress) + 5Gi (MySQL)
+
+**Scalability**
+- Platform API: Horizontal scaling (2+ replicas)
+- Orchestrator: Single instance (leader election recommended for HA)
+- Stores: Isolated namespaces with quotas
+
+---
+
+## Screenshots
+
+### Home Page
+![Home Page](Home.jpeg)
+
+### Featured Products
+![Products](Products.jpeg)
+
+### Order Confirmation
+![Checkout](Product.jpeg)
+
+### Admin Dashboard
+![Admin](Admin.jpeg)
+
+---
+
+## Disclaimer
+
+"Urumi Clothing" is a fictional brand name used exclusively for demonstration purposes. This project is not associated with any real business or commercial entity.
+
+---
 
 ## License
 
-MIT
+MIT License - See LICENSE file for details
+
+---
+
+## Author
+
+**Shruti Priya**
+GitHub: [@shruti23-ui](https://github.com/shruti23-ui)
+Repository: [Urumi.ai](https://github.com/shruti23-ui/Urumi.ai)
+
+---
+
+## Contributing
+
+This is a demonstration project. For issues or suggestions, please open an issue on GitHub.
