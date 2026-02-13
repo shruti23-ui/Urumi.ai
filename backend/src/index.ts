@@ -42,6 +42,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
   'http://127.0.0.1:80',
   'http://51.20.42.151',
   'http://51.20.42.151:30232',
+  'http://51.20.42.151:30300',
   'http://51.20.42.151:30395',
 ];
 

@@ -22,6 +22,7 @@ api:
   serviceType: NodePort
   env:
     DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
+    ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:5173,http://localhost,http://127.0.0.1,http://51.20.42.151,http://51.20.42.151:30395,http://51.20.42.151:30232,http://51.20.42.151:30300"
 
 orchestrator:
   replicas: 1
