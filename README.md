@@ -11,7 +11,8 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
 **Products:** 3 products live (Shoes, Jeans, T-Shirt)
 
 **Recent Updates:**
-- Fixed cart functionality by switching to Storefront theme
+- Fixed cart by disabling WooCommerce "Coming Soon" mode
+- Switched to Storefront theme for compatibility
 - Improved UX copy: "Curated Fashion for the Modern You"
 - Updated all URLs to production endpoints
 - Added comprehensive admin documentation
@@ -30,10 +31,29 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
   - Username: `admin`
   - Password: `Admin@123!`
 
-### Platform API
+### Platform API (Public Access)
+**Base URL:** http://51.20.42.151:30395
+
+**Endpoints:**
 - Root: http://51.20.42.151:30395/
-- Health: http://51.20.42.151:30395/health
-- Stores: http://51.20.42.151:30395/api/stores
+- Health Check: http://51.20.42.151:30395/health
+- List Stores: http://51.20.42.151:30395/api/stores
+- Create Store: `POST http://51.20.42.151:30395/api/stores`
+
+**Quick Test:**
+```bash
+# Test API health
+curl http://51.20.42.151:30395/health
+
+# Create a new store
+curl -X POST http://51.20.42.151:30395/api/stores \
+  -H "Content-Type: application/json" \
+  -H "x-user-id: demo-user" \
+  -d '{
+    "name": "My Fashion Store",
+    "engine": "woocommerce"
+  }'
+```
 
 ### AWS Security Group Configuration
 
@@ -152,6 +172,45 @@ To see what customers see:
 
 ---
 
+## API Access
+
+### Public API (Production)
+**For creating stores and external access, use the public IP:**
+
+```bash
+# Base URL
+http://51.20.42.151:30395
+
+# Test connection
+curl http://51.20.42.151:30395/health
+
+# List all stores
+curl http://51.20.42.151:30395/api/stores -H "x-user-id: your-user-id"
+
+# Create a new store
+curl -X POST http://51.20.42.151:30395/api/stores \
+  -H "Content-Type: application/json" \
+  -H "x-user-id: your-user-id" \
+  -d '{"name": "My Store", "engine": "woocommerce"}'
+```
+
+**Response example:**
+```json
+{
+  "store": {
+    "id": "abc123",
+    "name": "My Store",
+    "status": "provisioning",
+    "url": "http://51.20.42.151:30XXX",
+    "namespace": "store-my-store-abc123"
+  }
+}
+```
+
+Store will be ready in 2-3 minutes at the provided URL.
+
+---
+
 ## Local Development
 
 ### Prerequisites
@@ -166,10 +225,20 @@ docker-compose up -d
 ```
 
 This starts:
-- Backend API: http://localhost:3001/
+- Backend API: http://localhost:3001/ (Platform management)
 - Backend Health: http://localhost:3001/health
-- Frontend Dashboard: http://localhost:3000
+- Frontend Dashboard: http://localhost:3000 (Store management UI)
 - PostgreSQL: localhost:5432
+
+**Test localhost:**
+```bash
+# Check backend health
+curl http://localhost:3001/health
+
+# Expected: {"status":"healthy","database":"connected",...}
+```
+
+**Note:** Localhost is for platform development only. For creating stores, use the public IP: http://51.20.42.151:30395
 
 ### Manual Setup
 
@@ -528,21 +597,30 @@ curl http://localhost:3001/health
 2. Select: launch-wizard-2 (eu-north-1)
 3. Add inbound rule: TCP ports 30000-32767, source 0.0.0.0/0
 
-### Cart not showing products
+### Cart shows "Great things are on the horizon" placeholder
 
-**Problem:** Products added to cart don't appear on cart page
+**Problem:** Cart and other pages show placeholder text instead of actual content
 
-**Solution:** This issue was caused by theme incompatibility. The store now uses Storefront theme (WooCommerce's official theme) which fully supports cart functionality.
+**Root Cause:** WooCommerce "Coming Soon" mode was enabled
 
-**If you still experience cart issues:**
+**Solution:**
 ```bash
-# SSH into AWS server
+# SSH into AWS
 ssh -i ~/.ssh/aws-key.pem ubuntu@51.20.42.151
 
-# Clear WooCommerce sessions and cache
-sudo k3s kubectl exec -n store-urumi-clothing-04f87684 <pod-name> -c wp-setup -- wp cache flush --allow-root
-sudo k3s kubectl exec -n store-urumi-clothing-04f87684 <pod-name> -c wp-setup -- wp transient delete --all --allow-root
+# Get pod name
+POD=$(sudo k3s kubectl get pods -n store-urumi-clothing-04f87684 -l app=urumi-clothing -o jsonpath='{.items[0].metadata.name}')
+
+# Disable coming soon mode
+sudo k3s kubectl exec -n store-urumi-clothing-04f87684 $POD -c wp-setup -- \
+  wp option update woocommerce_coming_soon no --allow-root
+
+# Clear cache
+sudo k3s kubectl exec -n store-urumi-clothing-04f87684 $POD -c wp-setup -- \
+  wp cache flush --allow-root
 ```
+
+Cart and checkout should now work properly.
 
 ### Store creation fails locally
 
