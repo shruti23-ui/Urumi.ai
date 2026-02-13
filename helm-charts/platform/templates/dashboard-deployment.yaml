@@ -2,10 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "platform.fullname" . }}-dashboard
+  name: platform-dashboard
+  namespace: {{ .Values.namespace }}
   labels:
     app: platform-dashboard
-    {{- include "platform.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.dashboard.replicas | default 1 }}
   selector:
@@ -63,10 +63,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "platform.fullname" . }}-dashboard
+  name: platform-dashboard
+  namespace: {{ .Values.namespace }}
   labels:
     app: platform-dashboard
-    {{- include "platform.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.dashboard.serviceType | default "ClusterIP" }}
   {{- if and (eq .Values.dashboard.serviceType "NodePort") .Values.dashboard.nodePort }}
