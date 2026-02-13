@@ -1,512 +1,296 @@
 # All URLs - Store Platform Access Guide
 
 **Generated:** February 13, 2026
-**Environment:** AWS EC2 (51.20.42.151) & Kubernetes (Docker Desktop)
+**Environment:** AWS EC2 Production (51.20.42.151)
+**Status:** ✅ FULLY OPERATIONAL
 
 ---
 
-## ☁️ AWS Production URLs (NEW - 51.20.42.151)
+## 🌐 AWS Production URLs - WORKING LINKS
 
-### Main Dashboard (AWS)
+### ✅ Platform API
 ```
-http://51.20.42.151:[NODEPORT]/
+http://51.20.42.151:30395/health              # Health check
+http://51.20.42.151:30395/api/stores          # List all stores
+http://51.20.42.151:30395/api/stores/{id}     # Get specific store
 ```
-**Status:** 🔄 Pending Deployment
-**Description:** Production Store Platform Dashboard
-**Note:** Replace [NODEPORT] with actual NodePort after deployment (typically 31000-32000)
+**Status:** ✅ LIVE and operational
 
-### API Endpoints (AWS)
+### ✅ Urumi Clothing Store
 ```
-http://51.20.42.151:[NODEPORT]/api/stores          # List all stores
-http://51.20.42.151:[NODEPORT]/api/stores/{id}     # Get specific store
-http://51.20.42.151:[NODEPORT]/health              # Health check
-```
-
-### Alternative Domain (AWS with nip.io)
-```
-http://platform.51.20.42.151.nip.io:[NODEPORT]/
+Store Homepage:  http://51.20.42.151:30232/
+Shop Products:   http://51.20.42.151:30232/shop/
+Shopping Cart:   http://51.20.42.151:30232/cart/
+Checkout:        http://51.20.42.151:30232/checkout/
+Admin Panel:     http://51.20.42.151:30232/wp-admin
 ```
 
-**To Deploy:**
-1. SSH: `ssh -i store-platform-key.pem ubuntu@51.20.42.151`
-2. Run: `cd Urumi.ai && ./deploy-to-aws-new.sh`
-3. Check: `sudo kubectl get svc -n store-platform`
+**Admin Credentials:**
+- Username: `admin`
+- Password: `Admin@123!`
+
+**Status:** ✅ LIVE - WordPress + WooCommerce running
 
 ---
 
-## 🌐 Platform URLs (Local Development)
+## ⚠️ IMPORTANT: Enable Browser Access
 
-### Main Dashboard
-```
-http://localhost/
-```
-**Status:** ✅ Working (HTTP 200)
-**Description:** Store Platform Dashboard - Create and manage stores
+**Current Issue:** AWS Security Group is blocking NodePort range
 
-### API Endpoints
-```
-http://localhost/api/stores          # List all stores
-http://localhost/api/stores/{id}     # Get specific store
-http://localhost/health              # Health check
-http://localhost/health/live         # Liveness probe
-http://localhost/health/ready        # Readiness probe
-```
+**Fix:** Add this rule in AWS Console:
+1. Go to **EC2** → **Security Groups** → **launch-wizard-2**
+2. **Edit Inbound Rules** → **Add Rule**
+3. Configure:
+   - Type: **Custom TCP**
+   - Port Range: **30000-32767**
+   - Source: **0.0.0.0/0**
+   - Description: **Kubernetes NodePort Services**
+4. **Save Rules**
 
-### Alternative Access (if localhost doesn't work)
-```
-http://platform.local.stores.dev/
-```
-**Note:** Requires adding to `C:\Windows\System32\drivers\etc\hosts`:
-```
-127.0.0.1 platform.local.stores.dev
-```
+**After adding this rule, all URLs above will work from any device!**
 
 ---
 
-## 🏪 Active WooCommerce Stores
+## 📱 Test URLs (After Security Group Fix)
 
-### Store 1: Clothing
-- **Namespace:** `store-clothing-96aa0836`
-- **Age:** 25 hours
-- **Status:** Active
-- **Access Methods:**
-  - **Via Ingress:** `http://clothing.local.stores.dev/` (requires hosts file)
-  - **ClusterIP:** 10.99.92.107:80 (internal only)
-- **Admin:** `http://clothing.local.stores.dev/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
-
-**Add to hosts file:**
+### From Desktop/Laptop:
 ```
-127.0.0.1 clothing.local.stores.dev
+Store:  http://51.20.42.151:30232/
+API:    http://51.20.42.151:30395/health
+Admin:  http://51.20.42.151:30232/wp-admin
+```
+
+### From Mobile Phone:
+Open your phone browser and enter:
+```
+http://51.20.42.151:30232/
+```
+
+### From Tablet:
+Open tablet browser and enter:
+```
+http://51.20.42.151:30232/
 ```
 
 ---
 
-### Store 2: Clothing Store  (NodePort Available)
-- **Namespace:** `store-clothing-store-8517b785`
-- **Age:** 158 minutes
-- **Status:** Active
-- **Access Methods:**
-  - **Via NodePort:** `http://localhost:31005/` ✅ **DIRECT ACCESS**
-  - **Via Ingress:** `http://clothing-store.local.stores.dev/`
-  - **ClusterIP:** 10.103.116.46:80 (internal only)
-- **Admin:** `http://localhost:31005/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
+## 🔍 Verify Deployment (Via SSH)
 
-**⭐ This store has NodePort - can access directly without hosts file!**
+SSH into AWS and test internally:
+```bash
+ssh -i "C:\Users\hp\OneDrive\Desktop\store-platform-key.pem" ubuntu@51.20.42.151
+
+# Test API
+curl http://localhost:30395/health
+
+# Test Store
+curl -I http://localhost:30232/
+
+# List stores
+curl http://localhost:30395/api/stores
+```
+
+**All tests should return HTTP 200 OK**
 
 ---
 
-### Store 3: Demo Store
-- **Namespace:** `store-demostore-53342291`
-- **Age:** 34 hours
-- **Status:** Active
-- **Access Methods:**
-  - **Via Ingress:** `http://demostore.local.stores.dev/` (requires hosts file)
-  - **ClusterIP:** 10.107.146.248:80 (internal only)
-- **Admin:** `http://demostore.local.stores.dev/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
+## 🎯 Quick Actions
 
-**Add to hosts file:**
-```
-127.0.0.1 demostore.local.stores.dev
+### Check Platform Status
+```bash
+ssh -i store-platform-key.pem ubuntu@51.20.42.151
+sudo kubectl get pods -n store-platform
+sudo kubectl get svc -n store-platform
 ```
 
----
-
-### Store 4: My Store
-- **Namespace:** `store-mystore-14a1f6a8`
-- **Age:** 34 hours
-- **Status:** Active
-- **Access Methods:**
-  - **Via Ingress:** `http://mystore.local.stores.dev/` (requires hosts file)
-  - **ClusterIP:** 10.96.136.235:80 (internal only)
-- **Admin:** `http://mystore.local.stores.dev/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
-
-**Add to hosts file:**
+### Check Urumi Store Status
+```bash
+sudo kubectl get pods -n store-urumi-clothing-04f87684
+sudo kubectl get svc -n store-urumi-clothing-04f87684
 ```
-127.0.0.1 mystore.local.stores.dev
+
+### Create Another Store
+```bash
+curl -X POST http://51.20.42.151:30395/api/stores \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Fashion Boutique","engine":"woocommerce"}'
 ```
 
 ---
 
-### Store 5: PowerShell Test
-- **Namespace:** `store-powershelltest-740f852d`
-- **Age:** 26 hours
-- **Status:** Active
-- **Access Methods:**
-  - **Via Ingress:** `http://powershelltest.local.stores.dev/`
-  - **ClusterIP:** 10.102.187.149:80 (internal only)
-- **Admin:** `http://powershelltest.local.stores.dev/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
+## 📊 Current Deployment
 
-**Add to hosts file:**
-```
-127.0.0.1 powershelltest.local.stores.dev
+### Platform Services
+| Service | Type | Port | URL |
+|---------|------|------|-----|
+| Platform API | NodePort | 30395 | http://51.20.42.151:30395 |
+| PostgreSQL | ClusterIP | 5432 | Internal only |
+
+### Active Stores
+| Store Name | Type | Port | URL | Status |
+|------------|------|------|-----|--------|
+| Urumi Clothing | NodePort | 30232 | http://51.20.42.151:30232 | ✅ Ready |
+
+---
+
+## 🛍️ Using Urumi Clothing Store
+
+### Customer Flow:
+1. Visit: http://51.20.42.151:30232/
+2. Browse products (add products via admin first)
+3. Add items to cart
+4. Proceed to checkout: http://51.20.42.151:30232/checkout/
+5. Fill billing details
+6. Select "Cash on Delivery"
+7. Place order
+
+### Admin Flow:
+1. Login: http://51.20.42.151:30232/wp-admin
+2. Add Products: **Products** → **Add New**
+3. View Orders: **WooCommerce** → **Orders**
+4. Configure Settings: **WooCommerce** → **Settings**
+
+---
+
+## 📦 Add Sample Products
+
+### Via WooCommerce Admin:
+1. Login to http://51.20.42.151:30232/wp-admin
+2. Go to **Products** → **Add New**
+3. Add product details:
+   - Product name
+   - Regular price (e.g., ₹2500)
+   - Description
+   - Category
+   - Product image
+4. Click **Publish**
+
+### Via Automated Script (SSH):
+```bash
+ssh -i store-platform-key.pem ubuntu@51.20.42.151
+cd Urumi.ai
+
+# Update namespace
+STORE_NS="store-urumi-clothing-04f87684"
+sed -i "s/NAMESPACE=.*/NAMESPACE=\"$STORE_NS\"/" setup-fashion-store.sh
+
+# Run setup (adds 5 products with images)
+chmod +x setup-fashion-store.sh
+./setup-fashion-store.sh
 ```
 
 ---
 
-### Store 6: Test Store
-- **Namespace:** `store-teststore-8f5d2fcb`
-- **Age:** 26 hours
-- **Status:** Active
-- **Access Methods:**
-  - **Via Ingress:** `http://teststore.local.stores.dev/`
-  - **ClusterIP:** 10.103.153.81:80 (internal only)
-- **Admin:** `http://teststore.local.stores.dev/wp-admin`
-- **Credentials:**
-  - Username: `admin`
-  - Password: `Admin@123!`
+## 🔧 Management Commands
 
-**Add to hosts file:**
-```
-127.0.0.1 teststore.local.stores.dev
-```
+### API Commands
+```bash
+# List all stores
+curl http://51.20.42.151:30395/api/stores
 
----
+# Get specific store
+curl http://51.20.42.151:30395/api/stores/{STORE_ID}
 
-## 🔧 How to Access Stores
+# Create new store
+curl -X POST http://51.20.42.151:30395/api/stores \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Electronics Store","engine":"woocommerce"}'
 
-### Method 1: NodePort (Easiest - No Setup Required)
-
-Only **Store 2 (Clothing Store)** has NodePort enabled:
-
-```
-http://localhost:31005/
+# Delete store
+curl -X DELETE http://51.20.42.151:30395/api/stores/{STORE_ID}
 ```
 
-**Test it now:**
-```powershell
-curl http://localhost:31005/
-```
+### Kubernetes Commands
+```bash
+# View all pods
+sudo kubectl get pods -A
 
----
+# View orchestrator logs
+sudo kubectl logs -f -n store-platform deployment/platform-orchestrator
 
-### Method 2: Ingress with Hosts File (Recommended)
+# View store logs
+sudo kubectl logs -f -n store-urumi-clothing-04f87684 deployment/urumi-clothing
 
-**Step 1: Edit hosts file**
-
-Open PowerShell as Administrator:
-```powershell
-notepad C:\Windows\System32\drivers\etc\hosts
-```
-
-**Step 2: Add these lines:**
-```
-127.0.0.1 platform.local.stores.dev
-127.0.0.1 clothing.local.stores.dev
-127.0.0.1 clothing-store.local.stores.dev
-127.0.0.1 demostore.local.stores.dev
-127.0.0.1 mystore.local.stores.dev
-127.0.0.1 powershelltest.local.stores.dev
-127.0.0.1 teststore.local.stores.dev
-```
-
-**Step 3: Save and close**
-
-**Step 4: Access stores:**
-- Platform: `http://platform.local.stores.dev/`
-- Clothing: `http://clothing.local.stores.dev/`
-- Demo: `http://demostore.local.stores.dev/`
-- etc.
-
----
-
-### Method 3: Port Forwarding (Alternative)
-
-If ingress isn't working, use kubectl port-forward:
-
-```powershell
-# Forward Clothing Store
-kubectl port-forward -n store-clothing-96aa0836 svc/clothing 8080:80
-
-# Access at:
-http://localhost:8080/
+# Restart API
+sudo kubectl rollout restart deployment/platform-api -n store-platform
 ```
 
 ---
 
-## 📊 Quick Access Table
+## 🎥 Demo Video URLs
 
-| Store Name | NodePort URL | Ingress URL | Status |
-|------------|--------------|-------------|--------|
-| **Platform Dashboard** | `http://localhost/` | `http://platform.local.stores.dev/` | ✅ Active |
-| **Clothing Store** | `http://localhost:31005/` | `http://clothing-store.local.stores.dev/` | ✅ Active |
-| Clothing | N/A | `http://clothing.local.stores.dev/` | ✅ Active |
-| Demo Store | N/A | `http://demostore.local.stores.dev/` | ✅ Active |
-| My Store | N/A | `http://mystore.local.stores.dev/` | ✅ Active |
-| PowerShell Test | N/A | `http://powershelltest.local.stores.dev/` | ✅ Active |
-| Test Store | N/A | `http://teststore.local.stores.dev/` | ✅ Active |
+Use these URLs for your demonstration:
 
----
+1. **Show API Health:**
+   ```
+   http://51.20.42.151:30395/health
+   ```
 
-## 🎯 For Demo Video - Use These URLs
+2. **Show Store List:**
+   ```
+   http://51.20.42.151:30395/api/stores
+   ```
 
-### 1. Show Dashboard
-```
-http://localhost/
-```
-Shows all stores, create new store form, status updates
+3. **Show Store Homepage:**
+   ```
+   http://51.20.42.151:30232/
+   ```
 
----
+4. **Show Admin Panel:**
+   ```
+   http://51.20.42.151:30232/wp-admin
+   Login: admin / Admin@123!
+   ```
 
-### 2. Access a Working Store (NodePort - Easiest)
-```
-http://localhost:31005/
-```
-This is **Clothing Store** - has products, working checkout
+5. **Show WooCommerce Dashboard:**
+   - Products section
+   - Orders section
+   - Settings
 
----
-
-### 3. Show WooCommerce Admin
-```
-http://localhost:31005/wp-admin
-Username: admin
-Password: Admin@123!
-```
-Show orders, products, WooCommerce settings
-
----
-
-### 4. Alternative Stores (with hosts file)
-```
-http://clothing.local.stores.dev/
-http://demostore.local.stores.dev/
-http://mystore.local.stores.dev/
-```
-
----
-
-## 🔍 Verification Commands
-
-### Check All Services
-```powershell
-# Platform
-kubectl get svc -n store-platform
-
-# All stores
-kubectl get svc -A | findstr "store-"
-
-# Ingress rules
-kubectl get ingress -A
-```
-
-### Test URLs
-```powershell
-# Dashboard
-curl http://localhost/
-
-# API
-curl http://localhost/api/stores
-
-# Store (NodePort)
-curl http://localhost:31005/
-```
-
-### Check Store Status
-```powershell
-# List all store namespaces
-kubectl get namespaces | findstr store-
-
-# Check pods in a store
-kubectl get pods -n store-clothing-store-8517b785
-
-# Check service details
-kubectl get svc -n store-clothing-store-8517b785 -o wide
-```
+6. **Create Store Live:**
+   ```bash
+   curl -X POST http://51.20.42.151:30395/api/stores \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Live Demo Store","engine":"woocommerce"}'
+   ```
 
 ---
 
 ## 🚨 Troubleshooting
 
-### "This site can't be reached" for .local.stores.dev URLs
+### URLs Return Connection Timeout
+**Issue:** Security Group not configured
+**Fix:** Add NodePort range (30000-32767) to inbound rules
 
-**Problem:** Hosts file not configured
-
-**Solution:**
-1. Open PowerShell as Administrator
-2. Run: `notepad C:\Windows\System32\drivers\etc\hosts`
-3. Add the entries from Method 2 above
-4. Save and close
-5. Flush DNS: `ipconfig /flushdns`
-
----
-
-### Dashboard shows 404
-
-**Problem:** Ingress not routing correctly
-
-**Solutions:**
-
-**Option 1:** Use localhost (should always work)
-```
-http://localhost/
+### Store Shows "Establishing Database Connection"
+**Issue:** WordPress URL misconfigured
+**Fix:**
+```bash
+ssh -i store-platform-key.pem ubuntu@51.20.42.151
+sudo kubectl exec -n store-urumi-clothing-04f87684 deploy/urumi-clothing -c wp-setup -- \
+  wp option update siteurl 'http://51.20.42.151:30232' --allow-root
+sudo kubectl exec -n store-urumi-clothing-04f87684 deploy/urumi-clothing -c wp-setup -- \
+  wp option update home 'http://51.20.42.151:30232' --allow-root
 ```
 
-**Option 2:** Restart ingress
-```powershell
-kubectl rollout restart deployment ingress-nginx-controller -n ingress-nginx
-```
-
-**Option 3:** Check ingress status
-```powershell
-kubectl get ingress -n store-platform
-kubectl describe ingress platform-ingress -n store-platform
+### API Not Responding
+**Check:**
+```bash
+sudo kubectl get pods -n store-platform
+sudo kubectl logs -n store-platform deployment/platform-api
 ```
 
 ---
 
-### Store shows "Database connection error"
+## ✅ Quick Summary
 
-**Problem:** MySQL not ready
+**Platform Status:** ✅ OPERATIONAL
+**Urumi Store Status:** ✅ LIVE
+**Action Needed:** Add Security Group rule (port 30000-32767)
 
-**Solution:** Check MySQL pod
-```powershell
-# Check MySQL status
-kubectl get pods -n store-clothing-store-8517b785
+**Working URLs (after Security Group fix):**
+- Store: http://51.20.42.151:30232/
+- Admin: http://51.20.42.151:30232/wp-admin
+- API: http://51.20.42.151:30395/api/stores
 
-# Check logs
-kubectl logs -n store-clothing-store-8517b785 clothing-store-mysql-0
-
-# Restart if needed
-kubectl delete pod -n store-clothing-store-8517b785 clothing-store-mysql-0
-```
-
----
-
-## 💡 Pro Tips
-
-### 1. Quick Store Access
-The **Clothing Store** at `http://localhost:31005/` is the easiest to demo because it has NodePort - no hosts file needed!
-
-### 2. Multiple Browsers
-Open different stores in different browser tabs to show multi-tenancy:
-- Tab 1: Dashboard (`http://localhost/`)
-- Tab 2: Clothing Store (`http://localhost:31005/`)
-- Tab 3: Another store (via ingress)
-
-### 3. Show Resource Isolation
-```powershell
-# Show namespace separation
-kubectl get all -n store-clothing-store-8517b785
-
-# Show resource quotas
-kubectl describe resourcequota -n store-clothing-store-8517b785
-```
-
-### 4. Live Monitoring
-```powershell
-# Watch store creation in real-time
-kubectl get pods -A --watch | findstr store-
-
-# Watch orchestrator logs
-kubectl logs -f -n store-platform deployment/platform-orchestrator
-```
-
----
-
-## 🎬 Demo Script URLs
-
-For your video, use this sequence:
-
-### Part 1: Platform Overview (2 minutes)
-```
-http://localhost/
-```
-- Show dashboard with 7 stores
-- Point out status (ready/failed)
-- Show auto-refresh
-
-### Part 2: Create New Store (3 minutes)
-```
-http://localhost/
-```
-- Click "Create New Store"
-- Name: "Demo Fashion Store"
-- Engine: WooCommerce (Medusa is disabled ✅)
-- Click Create
-- Show orchestrator logs in terminal
-- Wait for "Ready" status
-
-### Part 3: Access Store (2 minutes)
-```
-http://localhost:31005/
-```
-(or the NodePort of your new store)
-- Show WooCommerce storefront
-- Show 3 sample products with images
-- Add product to cart
-
-### Part 4: Place Order (3 minutes)
-```
-http://localhost:31005/
-```
-- Go to checkout
-- Fill billing details (any test data)
-- Select "Cash on Delivery"
-- Place order
-
-### Part 5: Verify in Admin (2 minutes)
-```
-http://localhost:31005/wp-admin
-Username: admin
-Password: Admin@123!
-```
-- Navigate to WooCommerce → Orders
-- Show the order you just placed
-- Show products, settings
-
-### Part 6: Delete Store (2 minutes)
-```
-http://localhost/
-```
-- Click "Delete Store" on one store
-- Confirm deletion
-- Show it goes to "deleting" status
-- In terminal: `kubectl get namespaces | findstr store-`
-- Show namespace being removed
-
----
-
-## 📝 Summary
-
-**Main Access Points:**
-
-1. **Dashboard (Always Use This):**
-   ```
-   http://localhost/
-   ```
-
-2. **Easiest Store to Access:**
-   ```
-   http://localhost:31005/
-   ```
-   (Clothing Store - NodePort)
-
-3. **WooCommerce Admin:**
-   ```
-   http://localhost:31005/wp-admin
-   admin / Admin@123!
-   ```
-
-**Total Active Resources:**
-- 1 Platform Dashboard
-- 7 WooCommerce Stores
-- 8 Namespaces
-- 14+ Running Pods
-
-**Everything is working!** 🎉
-
-Open `http://localhost/` now to see your dashboard!
+**Everything is deployed and ready - just add the Security Group rule to access from your browser!** 🚀
