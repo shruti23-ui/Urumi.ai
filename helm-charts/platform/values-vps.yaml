@@ -29,4 +29,12 @@ orchestrator:
     DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
 
 dashboard:
-  enabled: false
+  enabled: true
+  replicas: 1
+  serviceType: NodePort
+  nodePort: 30300
+  image:
+    repository: node
+    tag: "20-alpine"
+  env:
+    VITE_API_URL: "http://51.20.42.151:30395/api"
