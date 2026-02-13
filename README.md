@@ -28,7 +28,8 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
 ### Urumi Clothing Store
 - Homepage: http://51.20.42.151:30232/
 - Shop: http://51.20.42.151:30232/shop/
-- Admin: http://51.20.42.151:30232/wp-admin
+- Admin Access Page: http://51.20.42.151:30232/?page_id=39 (displays credentials and orders)
+- Admin Panel: http://51.20.42.151:30232/wp-admin
   - Username: `admin`
   - Password: `Admin@123!`
 
