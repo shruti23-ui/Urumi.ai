@@ -23,10 +23,11 @@ mysql:
     tag: "8.0"
     pullPolicy: IfNotPresent
 
-  rootPassword: "rootpass123"
+  # Passwords managed via Kubernetes Secrets (created by orchestrator)
+  # Never commit real passwords here - use existingSecret reference
+  existingSecret: ""  # Set at deploy time by orchestrator
   database: "wordpress"
   user: "wpuser"
-  password: "wppass123"
 
   resources:
     requests:
