@@ -19,6 +19,7 @@ image:
 service:
   type: NodePort
   port: 80
+  nodePort: ""  # Set by orchestrator for predictable port assignment
 
 ingress:
   enabled: true

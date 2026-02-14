@@ -165,6 +165,10 @@ export class K8sProvisioner {
     const { dbPassword, rootPassword } = await this.createMySQLSecret(namespace, sanitizedStoreName);
     console.log(`Generated secure MySQL passwords for ${sanitizedStoreName}`);
 
+    // Get next available sequential port
+    const nodePort = await this.getNextAvailablePort();
+    console.log(`Assigned NodePort ${nodePort} for store ${sanitizedStoreName}`);
+
     // Create values file instead of using --set (prevents injection)
     const valuesContent = {
       storeName: sanitizedStoreName,
@@ -173,6 +177,11 @@ export class K8sProvisioner {
       wordpress: {
         adminPassword: 'Admin@123!',
         adminEmail: 'admin@example.com'
+      },
+      service: {
+        type: 'NodePort',
+        port: 80,
+        nodePort: nodePort > 0 ? nodePort : undefined,
       },
       ingress: {
         host: domain,
@@ -241,6 +250,40 @@ export class K8sProvisioner {
     } catch (error) {
       console.error(`Error checking deployment status:`, error);
       return false;
+    }
+  }
+
+  async getNextAvailablePort(): Promise<number> {
+    const BASE_PORT = 30400;
+    const MAX_PORT = 32767;
+
+    try {
+      // Get all services across all namespaces to find used NodePorts
+      const { body } = await coreApi.listServiceForAllNamespaces();
+      const usedPorts = new Set<number>();
+
+      for (const service of body.items) {
+        if (service.spec?.type === 'NodePort') {
+          for (const port of service.spec?.ports || []) {
+            if (port.nodePort) {
+              usedPorts.add(port.nodePort);
+            }
+          }
+        }
+      }
+
+      // Find the next available port starting from BASE_PORT
+      for (let port = BASE_PORT; port <= MAX_PORT; port++) {
+        if (!usedPorts.has(port)) {
+          console.log(`Next available NodePort: ${port}`);
+          return port;
+        }
+      }
+
+      throw new Error('No available NodePorts in range');
+    } catch (error) {
+      console.error('Error finding available port, using auto-assign:', error);
+      return 0; // Let Kubernetes auto-assign if we can't determine
     }
   }
 
