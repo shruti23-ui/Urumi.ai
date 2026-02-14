@@ -29,6 +29,7 @@ orchestrator:
   replicas: 1
   env:
     DEFAULT_DOMAIN_SUFFIX: ".51.20.42.151.nip.io"
+    EXTERNAL_IP: "51.20.42.151"
 
 dashboard:
   enabled: true
