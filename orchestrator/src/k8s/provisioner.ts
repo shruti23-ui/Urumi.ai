@@ -169,11 +169,16 @@ export class K8sProvisioner {
     const nodePort = await this.getNextAvailablePort();
     console.log(`Assigned NodePort ${nodePort} for store ${sanitizedStoreName}`);
 
+    // Build store URL using public IP + NodePort (not nip.io domain)
+    const externalIP = process.env.EXTERNAL_IP || 'localhost';
+    const storeUrl = nodePort > 0 ? `http://${externalIP}:${nodePort}` : `http://${domain}`;
+    console.log(`Store URL: ${storeUrl}`);
+
     // Create values file instead of using --set (prevents injection)
     const valuesContent = {
       storeName: sanitizedStoreName,
       storeId: storeId,
-      storeUrl: `http://${domain}`,
+      storeUrl: storeUrl,
       wordpress: {
         adminPassword: 'Admin@123!',
         adminEmail: 'admin@example.com'
