@@ -114,12 +114,17 @@ spec:
           mkdir -p wp-content/uploads wp-content/upgrade
           chmod 777 wp-content/uploads wp-content/upgrade
 
+          echo "Installing Storefront theme..."
+          wp theme install storefront --activate --allow-root
+
           echo "Installing WooCommerce..."
           wp plugin install woocommerce --activate --allow-root
           sleep 15
 
-          wp option update woocommerce_cod_settings '{"enabled":"yes"}' --format=json --allow-root || true
+          echo "Configuring WooCommerce..."
+          wp option update woocommerce_cod_settings '{"enabled":"yes","title":"Cash on delivery","description":"Pay with cash upon delivery.","instructions":"Pay with cash upon delivery.","enable_for_methods":[],"enable_for_virtual":true}' --format=json --allow-root || true
           wp option update woocommerce_currency 'INR' --allow-root || true
+          wp option update woocommerce_coming_soon 'no' --allow-root || true
 
           echo "Downloading images..."
           cd wp-content/uploads
@@ -137,6 +142,18 @@ spec:
           wp woocommerce product create --name="Casual Shoes" --regular_price=1500 --manage_stock=true --stock_quantity=30 --status=publish --images="[{\"id\":$S_ID}]" --user=admin --allow-root
 
           wp woocommerce tool run install_pages --user=admin --allow-root || true
+
+          echo "Setting up homepage..."
+          SHOP_ID=$(wp post list --post_type=page --name=shop --format=ids --allow-root)
+          if [ -n "$SHOP_ID" ]; then
+            wp option update show_on_front page --allow-root
+            wp option update page_on_front $SHOP_ID --allow-root
+          fi
+
+          echo "Fixing permalinks..."
+          wp rewrite structure '/%postname%/' --allow-root || true
+          wp rewrite flush --hard --allow-root || true
+
           echo "Setup complete!"
           sleep infinity
         env:
