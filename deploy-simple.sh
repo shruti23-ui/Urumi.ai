@@ -1,9 +1,9 @@
 #!/bin/bash
-# Simple AWS Deployment Script for 51.20.42.151
+# Simple AWS Deployment Script for 16.16.103.148
 
 set -e
 
-AWS_IP="51.20.42.151"
+AWS_IP="16.16.103.148"
 echo "===================================="
 echo "Deploying to AWS: $AWS_IP"
 echo "===================================="

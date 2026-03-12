@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # AWS Deployment Script for Store Platform
-# Target AWS Instance: 51.20.42.151
+# Target AWS Instance: 16.16.103.148
 # Created: February 13, 2026
 
 set -e
 
 echo "=================================="
 echo "Store Platform AWS Deployment"
-echo "Target IP: 51.20.42.151"
+echo "Target IP: 16.16.103.148"
 echo "=================================="
 
 # Colors for output
@@ -17,7 +17,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-AWS_IP="51.20.42.151"
+AWS_IP="16.16.103.148"
 NAMESPACE="store-platform"
 
 echo -e "${GREEN}Step 1: Checking prerequisites...${NC}"

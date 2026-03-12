@@ -1,7 +1,7 @@
 # Simple AWS Deployment Script
 param()
 
-$AWS_IP = "51.20.42.151"
+$AWS_IP = "16.16.103.148"
 $SSH_KEY = "C:\Users\hp\OneDrive\Desktop\store-platform-key.pem"
 
 Write-Host "Deploying to AWS: $AWS_IP" -ForegroundColor Cyan

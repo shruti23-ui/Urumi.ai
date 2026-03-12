@@ -59,6 +59,12 @@ spec:
           value: "wp_"
         - name: WORDPRESS_DEBUG
           value: "0"
+        - name: WORDPRESS_CONFIG_EXTRA
+          value: |
+            define('WP_HOME', '{{ .Values.storeUrl }}');
+            define('WP_SITEURL', '{{ .Values.storeUrl }}');
+            define('FORCE_SSL_ADMIN', false);
+            $_SERVER['HTTPS'] = 'off';
         ports:
         - name: http
           containerPort: 80
@@ -66,11 +72,8 @@ spec:
         {{- if .Values.livenessProbe.enabled }}
         livenessProbe:
           httpGet:
-            path: /
+            path: /wp-login.php
             port: http
-            httpHeaders:
-            - name: Host
-              value: {{ .Values.ingress.host }}
           initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -79,11 +82,8 @@ spec:
         {{- if .Values.readinessProbe.enabled }}
         readinessProbe:
           httpGet:
-            path: /
+            path: /wp-login.php
             port: http
-            httpHeaders:
-            - name: Host
-              value: {{ .Values.ingress.host }}
           initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
