@@ -710,6 +710,81 @@ kubectl rollout restart deployment/platform-api -n store-platform
 
 ---
 
+## System Design & Tradeoffs
+
+### Architecture Overview
+
+```
+Browser → React Dashboard (NodePort :30300)
+              ↓
+         Express API (NodePort :30395)
+              ↓
+         PostgreSQL (ClusterIP) ← store queue / metadata
+              ↑
+         Orchestrator (reconciliation loop)
+              ↓
+         Helm Install → Kubernetes Namespace
+                            ├── WordPress Deployment
+                            ├── MySQL StatefulSet
+                            ├── PVC (persistent storage)
+                            └── NodePort Service
+```
+
+### Key Design Decisions
+
+**1. Reconciler Pattern (not webhooks)**
+The orchestrator polls PostgreSQL every 5-30s using exponential backoff rather than webhooks or CRDs. This is simpler to reason about, restarts cleanly, and avoids the complexity of building a Kubernetes controller. A PostgreSQL advisory lock ensures only one orchestrator instance reconciles at a time, making horizontal scaling of the orchestrator safe.
+
+**2. Namespace-per-Store Isolation**
+Each provisioned store gets its own Kubernetes namespace with ResourceQuota and LimitRange. This provides:
+- Hard CPU/memory caps (prevents noisy neighbour problems)
+- Easy teardown (`kubectl delete namespace` removes all store resources atomically)
+- RBAC scope isolation (orchestrator can be granted per-namespace permissions)
+
+**3. Helm for Provisioning (not raw kubectl)**
+Using Helm to deploy each store means:
+- Store templates are versioned and upgradeable
+- `helm upgrade` provides rollback capability
+- Values files (`values-local.yaml` / `values-vps.yaml`) cleanly separate environment-specific config
+
+**4. NodePort over Ingress for Multi-Store**
+Each store gets a unique NodePort (sequential from 30400). This avoids requiring a wildcard DNS setup or cert-manager in production, making the demo deployable on any EC2 instance with a Security Group rule. The tradeoff is port proliferation — in a real production system, an Ingress Controller with subdomain routing (e.g., `store-name.platform.com`) would replace this.
+
+**5. WooCommerce via WordPress Docker Image**
+Used the official `wordpress:6.4-apache` image which includes WP-CLI support, enabling automated setup (theme install, product creation, WooCommerce config) via `WORDPRESS_CONFIG_EXTRA` env var. Medusa is architecturally supported via a separate Helm chart stub — adding it requires only implementing `helm-charts/medusa-store/`.
+
+### Idempotency & Failure Handling
+
+| Scenario | Behaviour |
+|----------|-----------|
+| Orchestrator restarts mid-provision | PostgreSQL advisory lock released; next cycle resumes from `status=provisioning` |
+| Helm install fails | Store marked `status=failed` with error message; no orphaned resources |
+| Namespace already exists | `namespaceExists()` check skips creation; Helm install proceeds idempotently |
+| Duplicate store creation | Per-user quota (max 10) enforced at API layer; rate limiter prevents abuse |
+| Store deletion | Namespace deletion cascades to all pods, services, PVCs |
+
+### Local vs Production Differences (Helm Values)
+
+| Concern | Local (`values-local.yaml`) | Production (`values-vps.yaml`) |
+|---------|----------------------------|-------------------------------|
+| Storage class | `standard` (Docker Desktop) | `local-path` (k3s) |
+| Ingress TLS | disabled | cert-manager (optional) |
+| NodePort access | localhost | EC2 public IP via `EXTERNAL_IP` |
+| API replicas | 1 | 2 |
+| Resource limits | relaxed | production-sized |
+| Domain suffix | `.local.stores.dev` | `.{PUBLIC_IP}.nip.io` |
+
+### What Would Change for Full Production
+
+- **DNS + TLS**: Replace NodePort with Ingress + cert-manager + wildcard `*.stores.platform.com`
+- **Storage**: Replace `local-path` with EBS/EFS StorageClass for durability
+- **Secrets**: Rotate to Kubernetes External Secrets + AWS Secrets Manager
+- **Orchestrator HA**: Leader election via PostgreSQL advisory lock already implemented; add 2+ replicas
+- **Observability**: Add Prometheus ServiceMonitor + Grafana dashboard for provisioning metrics
+- **Network policies**: Per-namespace deny-all default with explicit allows (already scaffolded)
+
+---
+
 ## Project Structure
 
 ```

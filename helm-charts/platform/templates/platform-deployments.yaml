@@ -70,8 +70,8 @@ spec:
   ports:
   - port: {{ .Values.api.port }}
     targetPort: {{ .Values.api.port }}
-    {{- if eq (.Values.api.serviceType | default "ClusterIP") "NodePort" }}
-    nodePort: {{ .Values.api.nodePort | default 0 }}
+    {{- if and (eq (.Values.api.serviceType | default "ClusterIP") "NodePort") .Values.api.nodePort }}
+    nodePort: {{ .Values.api.nodePort }}
     {{- end }}
   selector:
     app: platform-api
@@ -147,53 +147,62 @@ spec:
         app: platform-dashboard
     spec:
       initContainers:
-      - name: clone-frontend
-        image: alpine/git:latest
+      - name: clone-and-build-frontend
+        image: node:20-alpine
         command: ["/bin/sh", "-c"]
         args:
           - |
+            apk add --no-cache git
             git clone --depth 1 https://github.com/shruti23-ui/Urumi.ai.git /tmp/repo
-            cp -r /tmp/repo/frontend/* /app/
+            cp -r /tmp/repo/frontend/. /app/
+            cd /app
+            npm install
+            npm run build
+            echo "Build complete"
+        env:
+        {{- range $key, $value := .Values.dashboard.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
         volumeMounts:
         - name: frontend-code
           mountPath: /app
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
       containers:
       - name: dashboard
-        image: "{{ .Values.dashboard.image.repository }}:{{ .Values.dashboard.image.tag }}"
-        imagePullPolicy: {{ .Values.dashboard.image.pullPolicy }}
+        image: node:20-alpine
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: {{ .Values.dashboard.port }}
         workingDir: /app
         command: ["/bin/sh", "-c"]
         args:
           - |
-            apk add --no-cache npm
             npm install -g serve
-            cd /app
-            npm install
-            npm run build
             serve -s dist -l {{ .Values.dashboard.port }}
         volumeMounts:
         - name: frontend-code
           mountPath: /app
-        env:
-        {{- range $key, $value := .Values.dashboard.env }}
-        - name: {{ $key }}
-          value: {{ $value | quote }}
-        {{- end }}
         resources:
           {{- toYaml .Values.dashboard.resources | nindent 10 }}
         livenessProbe:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 60
+          initialDelaySeconds: 30
           periodSeconds: 10
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 50
+          initialDelaySeconds: 15
           periodSeconds: 5
       volumes:
       - name: frontend-code
@@ -209,8 +218,8 @@ spec:
   ports:
   - port: {{ .Values.dashboard.port }}
     targetPort: {{ .Values.dashboard.port }}
-    {{- if eq (.Values.dashboard.serviceType | default "ClusterIP") "NodePort" }}
-    nodePort: {{ .Values.dashboard.nodePort | default 0 }}
+    {{- if and (eq (.Values.dashboard.serviceType | default "ClusterIP") "NodePort") .Values.dashboard.nodePort }}
+    nodePort: {{ .Values.dashboard.nodePort }}
     {{- end }}
   selector:
     app: platform-dashboard
