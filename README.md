@@ -11,7 +11,7 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
 **Products:** 3 products live (Shoes, Jeans, T-Shirt)
 
 **Recent Updates:**
-- Deployed React dashboard for store creation on public IP (http://16.16.103.148:30300)
+- Deployed React dashboard for store creation on public IP (http://51.20.42.151:30300)
 - Fixed cart by disabling WooCommerce "Coming Soon" mode
 - Switched to Storefront theme for compatibility
 - Improved UX copy: "Curated Fashion for the Modern You"
@@ -23,32 +23,32 @@ A Kubernetes-based platform for provisioning and managing WooCommerce stores. Ea
 
 ## Live Deployment
 
-**Production:** http://16.16.103.148:30232/
+**Production:** http://51.20.42.151:30232/
 
 ### Urumi Clothing Store
-- Homepage: http://16.16.103.148:30232/
-- Shop: http://16.16.103.148:30232/shop/
-- Admin Access Page: http://16.16.103.148:30232/?page_id=39 (displays credentials and orders)
-- Admin Panel: http://16.16.103.148:30232/wp-admin
+- Homepage: http://51.20.42.151:30232/
+- Shop: http://51.20.42.151:30232/shop/
+- Admin Access Page: http://51.20.42.151:30232/?page_id=39 (displays credentials and orders)
+- Admin Panel: http://51.20.42.151:30232/wp-admin
   - Username: `admin`
   - Password: `Admin@123!`
 
 ### Platform API (Public Access)
-**Base URL:** http://16.16.103.148:30395
+**Base URL:** http://51.20.42.151:30395
 
 **Endpoints:**
-- Root: http://16.16.103.148:30395/
-- Health Check: http://16.16.103.148:30395/health
-- List Stores: http://16.16.103.148:30395/api/stores
-- Create Store: `POST http://16.16.103.148:30395/api/stores`
+- Root: http://51.20.42.151:30395/
+- Health Check: http://51.20.42.151:30395/health
+- List Stores: http://51.20.42.151:30395/api/stores
+- Create Store: `POST http://51.20.42.151:30395/api/stores`
 
 **Quick Test:**
 ```bash
 # Test API health
-curl http://16.16.103.148:30395/health
+curl http://51.20.42.151:30395/health
 
 # Create a new store
-curl -X POST http://16.16.103.148:30395/api/stores \
+curl -X POST http://51.20.42.151:30395/api/stores \
   -H "Content-Type: application/json" \
   -H "x-user-id: demo-user" \
   -d '{
@@ -58,7 +58,7 @@ curl -X POST http://16.16.103.148:30395/api/stores \
 ```
 
 ### React Dashboard (Store Creation UI)
-**Dashboard URL:** http://16.16.103.148:30300/
+**Dashboard URL:** http://51.20.42.151:30300/
 
 The React dashboard provides a web interface for managing stores:
 - Create new WooCommerce stores with a simple form
@@ -66,7 +66,7 @@ The React dashboard provides a web interface for managing stores:
 - Monitor store health and provisioning progress
 - Delete stores when no longer needed
 
-The dashboard automatically connects to the Platform API at http://16.16.103.148:30395/api for backend operations.
+The dashboard automatically connects to the Platform API at http://51.20.42.151:30395/api for backend operations.
 
 ### AWS Security Group Configuration
 
@@ -105,7 +105,7 @@ Description: Kubernetes NodePort Services
 
 ### Accessing the Store Admin Panel
 
-**URL:** http://16.16.103.148:30232/wp-admin
+**URL:** http://51.20.42.151:30232/wp-admin
 
 **Credentials:**
 - Username: `admin`
@@ -150,8 +150,8 @@ Description: Kubernetes NodePort Services
 ### Viewing Store as Customer
 
 To see what customers see:
-1. Open http://16.16.103.148:30232/ in an incognito/private window
-2. Browse products at http://16.16.103.148:30232/shop/
+1. Open http://51.20.42.151:30232/ in an incognito/private window
+2. Browse products at http://51.20.42.151:30232/shop/
 3. Add items to cart and test checkout flow
 4. Use COD (Cash on Delivery) payment method
 
@@ -192,16 +192,16 @@ To see what customers see:
 
 ```bash
 # Base URL
-http://16.16.103.148:30395
+http://51.20.42.151:30395
 
 # Test connection
-curl http://16.16.103.148:30395/health
+curl http://51.20.42.151:30395/health
 
 # List all stores
-curl http://16.16.103.148:30395/api/stores -H "x-user-id: your-user-id"
+curl http://51.20.42.151:30395/api/stores -H "x-user-id: your-user-id"
 
 # Create a new store
-curl -X POST http://16.16.103.148:30395/api/stores \
+curl -X POST http://51.20.42.151:30395/api/stores \
   -H "Content-Type: application/json" \
   -H "x-user-id: your-user-id" \
   -d '{"name": "My Store", "engine": "woocommerce"}'
@@ -214,7 +214,7 @@ curl -X POST http://16.16.103.148:30395/api/stores \
     "id": "abc123",
     "name": "My Store",
     "status": "provisioning",
-    "url": "http://16.16.103.148:30XXX",
+    "url": "http://51.20.42.151:30XXX",
     "namespace": "store-my-store-abc123"
   }
 }
@@ -251,7 +251,7 @@ curl http://localhost:3001/health
 # Expected: {"status":"healthy","database":"connected",...}
 ```
 
-**Note:** Localhost is for platform development only. For creating stores, use the public IP: http://16.16.103.148:30395
+**Note:** Localhost is for platform development only. For creating stores, use the public IP: http://51.20.42.151:30395
 
 ### Manual Setup
 
@@ -507,7 +507,7 @@ VITE_API_URL=http://localhost:3001/api
 
 ```bash
 # AWS production
-VITE_API_URL=http://16.16.103.148:30395/api
+VITE_API_URL=http://51.20.42.151:30395/api
 ```
 
 ### Orchestrator (.env)
@@ -619,7 +619,7 @@ curl http://localhost:3001/health
 **Solution:**
 ```bash
 # SSH into AWS
-ssh -i ~/.ssh/aws-key.pem ubuntu@16.16.103.148
+ssh -i ~/.ssh/aws-key.pem ubuntu@51.20.42.151
 
 # Get pod name
 POD=$(sudo k3s kubectl get pods -n store-urumi-clothing-04f87684 -l app=urumi-clothing -o jsonpath='{.items[0].metadata.name}')

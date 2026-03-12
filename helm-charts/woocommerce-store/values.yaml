@@ -1,6 +1,6 @@
 storeName: "My Store"
 storeId: "store-id"
-storeUrl: "http://localhost:30400"  # Overridden at deploy time by orchestrator (e.g. http://16.16.103.148:30232)
+storeUrl: "http://localhost:30400"  # Overridden at deploy time by orchestrator (e.g. http://51.20.42.151:30232)
 
 wordpress:
   image:

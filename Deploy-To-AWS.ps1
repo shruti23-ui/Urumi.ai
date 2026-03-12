@@ -1,10 +1,10 @@
 # PowerShell Script to Deploy Store Platform to AWS
-# Target: 16.16.103.148
+# Target: 51.20.42.151
 # Date: February 13, 2026
 
 $ErrorActionPreference = "Stop"
 
-$AWS_IP = "16.16.103.148"
+$AWS_IP = "51.20.42.151"
 $SSH_KEY = "C:\Users\hp\OneDrive\Desktop\store-platform-key.pem"
 $REPO_PATH = "Urumi.ai"
 
